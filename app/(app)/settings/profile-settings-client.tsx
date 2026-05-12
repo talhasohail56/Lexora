@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Briefcase, Check, CreditCard, Edit3, Loader2, Scale, Sparkles, UserRound } from "lucide-react";
+import { Briefcase, Camera, Check, CreditCard, Edit3, Loader2, Scale, Sparkles, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ type Profile = {
   email: string;
   role: string;
   status: string;
+  avatarUrl: string | null;
   onboardingComplete: boolean;
   organization: string | null;
   jurisdiction: string | null;
@@ -68,6 +69,7 @@ export function ProfileSettingsClient({
     .toUpperCase() || "LX";
   const [form, setForm] = useState({
     name: profile.name,
+    avatarUrl: profile.avatarUrl ?? "",
     organization: profile.organization ?? "",
     jurisdiction: profile.jurisdiction ?? "Pakistan",
     barNumber: profile.barNumber ?? "",
@@ -127,6 +129,7 @@ export function ProfileSettingsClient({
   function openEditor() {
     setForm({
       name: profile.name,
+      avatarUrl: profile.avatarUrl ?? "",
       organization: profile.organization ?? "",
       jurisdiction: profile.jurisdiction ?? "Pakistan",
       barNumber: profile.barNumber ?? "",
@@ -138,7 +141,26 @@ export function ProfileSettingsClient({
     setEditing(true);
   }
 
+  function setAvatarFile(file?: File) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choose an image file for the profile picture");
+      return;
+    }
+    if (file.size > 900 * 1024) {
+      toast.error("Profile picture must be under 900 KB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm((current) => ({ ...current, avatarUrl: String(reader.result || "") }));
+    };
+    reader.onerror = () => toast.error("Could not read that image");
+    reader.readAsDataURL(file);
+  }
+
   const Icon = roleCopy.icon;
+  const formAvatarIsUpload = form.avatarUrl.startsWith("data:image/");
 
   return (
     <PageTransition>
@@ -152,8 +174,12 @@ export function ProfileSettingsClient({
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(140,240,218,0.20),transparent_30%),radial-gradient(circle_at_88%_12%,rgba(214,122,45,0.24),transparent_35%)]" />
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-start gap-5">
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl border border-white/10 bg-white/[0.08] text-2xl font-bold shadow-[0_20px_80px_rgba(0,0,0,0.32)]">
-                {initials}
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-white/[0.08] text-2xl font-bold shadow-[0_20px_80px_rgba(0,0,0,0.32)]">
+                {profile.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt={`${profile.name} profile picture`} className="h-full w-full object-cover" />
+                ) : (
+                  initials
+                )}
               </div>
               <div>
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.07] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-[#8ff3d6]">
@@ -215,6 +241,42 @@ export function ProfileSettingsClient({
 
               {editing ? (
                 <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Profile picture (optional)" className="sm:col-span-2">
+                    <div className="flex flex-col gap-3 rounded-xl border bg-background/50 p-4 sm:flex-row sm:items-center">
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border bg-muted text-lg font-semibold">
+                        {form.avatarUrl ? (
+                          <img src={form.avatarUrl} alt="Profile preview" className="h-full w-full object-cover" />
+                        ) : (
+                          initials
+                        )}
+                      </div>
+                      <div className="grid min-w-0 flex-1 gap-2">
+                        <Input
+                          value={formAvatarIsUpload ? "Uploaded image selected" : form.avatarUrl}
+                          onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })}
+                          readOnly={formAvatarIsUpload}
+                          placeholder="Paste an image URL, or upload one below"
+                        />
+                        <div className="flex flex-wrap gap-2">
+                          <label className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent">
+                            <Camera className="h-4 w-4" />
+                            Upload image
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp,image/gif"
+                              className="sr-only"
+                              onChange={(e) => setAvatarFile(e.target.files?.[0])}
+                            />
+                          </label>
+                          {form.avatarUrl ? (
+                            <Button type="button" variant="outline" size="sm" onClick={() => setForm({ ...form, avatarUrl: "" })}>
+                              Remove
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  </Field>
                   <Field label="Full name">
                     <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                   </Field>
@@ -270,6 +332,7 @@ export function ProfileSettingsClient({
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <ProfileTile label="Email" value={profile.email} />
+                  <ProfileTile label="Profile picture" value={profile.avatarUrl ? "Set" : "Not set"} />
                   <ProfileTile label="Account status" value={profile.status} />
                   <ProfileTile label={roleCopy.orgLabel} value={profile.organization} />
                   <ProfileTile label="Jurisdiction" value={profile.jurisdiction || "Pakistan"} />

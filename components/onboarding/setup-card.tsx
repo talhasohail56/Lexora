@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Briefcase, Check, Loader2, Scale, Sparkles, UserRound } from "lucide-react";
+import { Briefcase, Camera, Check, Loader2, Scale, Sparkles, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ type Profile = {
   role: string;
   name: string;
   email: string;
+  avatarUrl: string | null;
   organization: string | null;
   jurisdiction: string | null;
   barNumber: string | null;
@@ -39,8 +40,16 @@ const tones = ["Precise and formal", "Plain English", "Court-ready", "Business-f
 export function OnboardingSetup({ profile }: { profile: Profile }) {
   const router = useRouter();
   const isLawyer = profile.role === "LAWYER";
+  const initials = profile.name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "LX";
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
+    avatarUrl: profile.avatarUrl ?? "",
     organization: profile.organization ?? "",
     jurisdiction: profile.jurisdiction ?? "Pakistan",
     barNumber: profile.barNumber ?? "",
@@ -94,7 +103,24 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
     }
   }
 
+  function setAvatarFile(file?: File) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choose an image file for the profile picture");
+      return;
+    }
+    if (file.size > 900 * 1024) {
+      toast.error("Profile picture must be under 900 KB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setForm((current) => ({ ...current, avatarUrl: String(reader.result || "") }));
+    reader.onerror = () => toast.error("Could not read that image");
+    reader.readAsDataURL(file);
+  }
+
   const Icon = copy.icon;
+  const formAvatarIsUpload = form.avatarUrl.startsWith("data:image/");
 
   return (
     <div className="fixed inset-0 z-[80] overflow-y-auto bg-black/80 p-4 backdrop-blur-xl">
@@ -160,13 +186,59 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
                 <h1 className="mt-5 max-w-xl text-4xl font-bold tracking-tight md:text-5xl">{copy.title}</h1>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50">{copy.body}</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-right text-sm text-white/60">
-                <div className="font-semibold text-white">{profile.name}</div>
-                <div>{profile.email}</div>
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/60">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.06] text-sm font-semibold text-white">
+                  {form.avatarUrl ? (
+                    <img src={form.avatarUrl} alt={`${profile.name} profile preview`} className="h-full w-full object-cover" />
+                  ) : (
+                    initials
+                  )}
+                </div>
+                <div className="min-w-0 text-right">
+                  <div className="truncate font-semibold text-white">{profile.name}</div>
+                  <div className="truncate">{profile.email}</div>
+                </div>
               </div>
             </div>
 
             <div className="mt-8 grid gap-4 md:grid-cols-2">
+              <Field label="Profile picture (optional)" className="md:col-span-2">
+                <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:flex-row sm:items-center">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] text-lg font-semibold text-white">
+                    {form.avatarUrl ? (
+                      <img src={form.avatarUrl} alt="Profile preview" className="h-full w-full object-cover" />
+                    ) : (
+                      initials
+                    )}
+                  </div>
+                  <div className="grid min-w-0 flex-1 gap-2">
+                    <Input
+                      value={formAvatarIsUpload ? "Uploaded image selected" : form.avatarUrl}
+                      onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })}
+                      readOnly={formAvatarIsUpload}
+                      className="border-white/10 bg-white/[0.04] text-white placeholder:text-white/25"
+                      placeholder="Paste image URL, or upload one below"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <label className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] px-3 text-sm font-medium text-white transition-colors hover:bg-white/[0.10]">
+                        <Camera className="h-4 w-4" />
+                        Upload image
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/gif"
+                          className="sr-only"
+                          onChange={(e) => setAvatarFile(e.target.files?.[0])}
+                        />
+                      </label>
+                      {form.avatarUrl ? (
+                        <Button type="button" variant="outline" size="sm" onClick={() => setForm({ ...form, avatarUrl: "" })}>
+                          Remove
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </Field>
               <Field label={copy.orgLabel}>
                 <Input
                   value={form.organization}

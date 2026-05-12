@@ -15,6 +15,7 @@ export default async function SettingsPage() {
         email: user.email,
         role: user.role,
         status: user.status,
+        avatarUrl: user.avatarUrl,
         onboardingComplete: user.onboardingComplete,
         organization: user.organization,
         jurisdiction: user.jurisdiction,

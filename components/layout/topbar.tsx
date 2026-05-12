@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -22,7 +22,7 @@ export function Topbar({
   user,
   subscription,
 }: {
-  user: { name: string; email: string; role: string };
+  user: { name: string; email: string; role: string; avatarUrl?: string | null };
   subscription?: SubscriptionContext;
 }) {
   const { setOpen } = useCommandPalette();
@@ -83,6 +83,7 @@ export function Topbar({
         <DropdownMenuTrigger asChild>
           <button className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
             <Avatar>
+              {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={`${user.name} profile picture`} className="object-cover" /> : null}
               <AvatarFallback>{user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
           </button>

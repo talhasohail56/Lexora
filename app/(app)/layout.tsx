@@ -18,6 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         name: true,
         email: true,
         role: true,
+        avatarUrl: true,
         onboardingComplete: true,
         organization: true,
         jurisdiction: true,
@@ -35,7 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Sidebar role={session.role} subscription={subscription} />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar
-          user={{ name: session.name, email: session.email, role: session.role }}
+          user={{ name: profile?.name ?? session.name, email: session.email, role: session.role, avatarUrl: profile?.avatarUrl }}
           subscription={subscription}
         />
         <main className="flex-1 p-8 overflow-x-hidden">
