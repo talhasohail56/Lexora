@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, Loader2, AlertCircle } from "lucide-react";
 import { GlowCard } from "@/components/animated/glow-card";
@@ -17,10 +17,17 @@ export default function TimelinePage() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const loadEvents = useCallback(async (id = documentId) => {
+    const url = id ? `/api/timeline?documentId=${encodeURIComponent(id)}` : "/api/timeline";
+    const r = await fetch(url);
+    const data = await r.json();
+    setEvents(Array.isArray(data) ? data : []);
+  }, [documentId]);
+
   useEffect(() => {
     fetch("/api/documents").then((r) => r.json()).then((d) => Array.isArray(d) && setDocs(d.filter((x: any) => x.status === "COMPLETED")));
-    fetch("/api/timeline").then((r) => r.json()).then(setEvents);
-  }, []);
+    loadEvents("");
+  }, [loadEvents]);
 
   async function extract() {
     if (!documentId) return;
@@ -34,9 +41,19 @@ export default function TimelinePage() {
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
       toast.success(`Extracted ${data.events.length} events`);
-      fetch("/api/timeline").then((r) => r.json()).then(setEvents);
+      await loadEvents(documentId);
     } catch (e: any) { toast.error(e.message); }
     finally { setLoading(false); }
+  }
+
+  function selectDocument(id: string) {
+    setDocumentId(id);
+    loadEvents(id);
+  }
+
+  function showAllEvents() {
+    setDocumentId("");
+    loadEvents("");
   }
 
   const pastDue = events.filter((e) => e.urgency === "PAST_DUE").length;
@@ -50,7 +67,11 @@ export default function TimelinePage() {
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <Clock className="h-7 w-7 text-lex-500" /> Legal Timeline
           </h1>
-          <p className="text-muted-foreground">All deadlines, notice periods, payment dates, and milestones across your contracts.</p>
+          <p className="text-muted-foreground">
+            {documentId
+              ? `Deadlines, notice periods, payment dates, and milestones for ${docs.find((d) => d.id === documentId)?.originalName || "the selected document"}.`
+              : "All deadlines, notice periods, payment dates, and milestones across your contracts."}
+          </p>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
@@ -69,12 +90,17 @@ export default function TimelinePage() {
 
         <GlowCard className="p-4">
           <div className="flex items-center gap-2">
-            <Select value={documentId} onValueChange={setDocumentId}>
+            <Select value={documentId} onValueChange={selectDocument}>
               <SelectTrigger className="flex-1"><SelectValue placeholder="Select a document to extract from…" /></SelectTrigger>
               <SelectContent>
                 {docs.map((d) => <SelectItem key={d.id} value={d.id}>{d.originalName}</SelectItem>)}
               </SelectContent>
             </Select>
+            {documentId && (
+              <Button variant="outline" onClick={showAllEvents}>
+                Show all
+              </Button>
+            )}
             <Button variant="gradient" onClick={extract} disabled={!documentId || loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Extract timeline"}
             </Button>
@@ -82,7 +108,15 @@ export default function TimelinePage() {
         </GlowCard>
 
         <GlowCard className="p-6">
-          <h3 className="font-semibold mb-4">Events</h3>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <h3 className="font-semibold">Events</h3>
+              <p className="text-xs text-muted-foreground">
+                {documentId ? "Filtered to the selected document." : "Showing all extracted timeline events."}
+              </p>
+            </div>
+            <Badge variant="outline">{events.length} events</Badge>
+          </div>
           {events.length === 0 ? (
             <p className="text-sm text-muted-foreground">No events extracted yet.</p>
           ) : (
@@ -103,6 +137,9 @@ export default function TimelinePage() {
                     <Badge variant={e.urgency === "PAST_DUE" ? "destructive" : e.urgency === "UPCOMING" ? "warning" : "success"}>
                       {e.urgency}
                     </Badge>
+                    {!documentId && e.document?.originalName && (
+                      <Badge variant="secondary">{e.document.originalName}</Badge>
+                    )}
                     <span className="text-xs text-muted-foreground">
                       {e.eventDate ? formatDate(e.eventDate) : e.relativeExpr || "—"}
                     </span>

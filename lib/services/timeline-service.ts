@@ -24,7 +24,8 @@ export async function extractTimeline(documentId: string) {
   let parsed: { events: any[] } = { events: [] };
   try { parsed = JSON.parse(raw); } catch { /* keep empty */ }
 
-  // Persist
+  // Persist a fresh timeline snapshot for this document.
+  await prisma.timelineEvent.deleteMany({ where: { documentId } });
   const events = await Promise.all(
     (parsed.events || []).map((e) => {
       const eventDate = e.eventDate ? safeDate(e.eventDate) : null;
