@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSession } from "@/lib/auth";
+import { getSession, setSessionCookie, signSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { auditLog } from "@/lib/services/audit-service";
 
 const Body = z.object({
+  name: z.string().trim().min(2).max(80).optional(),
   organization: z.string().trim().max(140).optional().default(""),
   jurisdiction: z.string().trim().min(2).max(80).optional().default("Pakistan"),
   barNumber: z.string().trim().max(80).optional().default(""),
@@ -31,6 +32,7 @@ export async function POST(req: NextRequest) {
   const user = await prisma.user.update({
     where: { id: session.userId },
     data: {
+      ...(data.name ? { name: data.name } : {}),
       onboardingComplete: true,
       organization: data.organization || null,
       jurisdiction: data.jurisdiction || "Pakistan",
@@ -43,6 +45,9 @@ export async function POST(req: NextRequest) {
     },
     select: {
       id: true,
+      name: true,
+      email: true,
+      status: true,
       role: true,
       organization: true,
       jurisdiction: true,
@@ -55,6 +60,16 @@ export async function POST(req: NextRequest) {
       onboardingComplete: true,
     },
   });
+
+  if (data.name && data.name !== session.name) {
+    const token = await signSession({
+      userId: session.userId,
+      role: session.role,
+      email: session.email,
+      name: data.name,
+    });
+    await setSessionCookie(token);
+  }
 
   void auditLog({
     userId: session.userId,

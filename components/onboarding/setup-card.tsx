@@ -118,7 +118,7 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
               <div className="mt-24 text-sm uppercase tracking-[0.18em] text-white/40">
                 {profile.name} / {copy.label} / Pakistan code
               </div>
-              <h2 className="mt-4 max-w-lg text-6xl font-bold leading-[0.95] tracking-tight">
+              <h2 className="mt-4 max-w-[28rem] text-5xl font-bold leading-[0.96] tracking-tight xl:text-6xl">
                 Make the workspace recognise you.
               </h2>
               <p className="mt-6 max-w-md text-lg leading-8 text-white/58">{copy.body}</p>
@@ -127,7 +127,7 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
             <motion.div
               animate={{ y: [0, -14, 0], rotate: [-4, -1, -4] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute left-10 top-56 w-72 rounded-2xl border border-white/10 bg-[#1b1714]/80 p-5 shadow-2xl"
+              className="absolute right-[-4rem] top-40 z-0 w-72 rounded-2xl border border-white/10 bg-[#1b1714]/72 p-5 shadow-2xl"
             >
               <div className="text-sm text-white/38">legal memory</div>
               <div className="mt-8 text-3xl font-bold">{isLawyer ? "counsel-first" : "context-first"}</div>
@@ -135,7 +135,7 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
             <motion.div
               animate={{ y: [0, 18, 0], rotate: [5, 2, 5] }}
               transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-20 right-10 w-80 rounded-2xl border border-white/10 bg-[#201914]/85 p-5 shadow-2xl"
+              className="absolute bottom-8 left-8 z-0 w-80 rounded-2xl border border-white/10 bg-[#201914]/80 p-5 shadow-2xl"
             >
               <div className="text-sm text-white/38">answer mode</div>
               <div className="mt-8 text-3xl font-bold">{form.preferredTone || "citations first"}</div>
