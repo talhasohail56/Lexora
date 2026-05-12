@@ -7,6 +7,7 @@ const PROTECTED = [
   "/billing", "/team", "/negotiator", "/forecast", "/glossary", "/library", "/voice-brief", "/annotations",
 ];
 const ADMIN_ONLY = ["/admin"];
+const AUTHENTICATED_REDIRECTS = ["/", "/login", "/register"];
 
 async function verify(token: string) {
   try {
@@ -20,12 +21,17 @@ async function verify(token: string) {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const token = req.cookies.get("lexora_session")?.value;
+  const payload = token ? await verify(token) : null;
+
+  if (payload && AUTHENTICATED_REDIRECTS.includes(pathname)) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
   const needsAuth = PROTECTED.some((p) => pathname.startsWith(p));
   if (!needsAuth) return NextResponse.next();
 
-  const token = req.cookies.get("lexora_session")?.value;
   if (!token) return NextResponse.redirect(new URL("/login", req.url));
-  const payload = await verify(token);
   if (!payload) return NextResponse.redirect(new URL("/login", req.url));
 
   if (ADMIN_ONLY.some((p) => pathname.startsWith(p)) && payload.role !== "ADMIN") {

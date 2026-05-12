@@ -38,12 +38,14 @@ export function sessionMaxAgeSeconds() {
 }
 
 export function sessionCookieOptions() {
+  const maxAge = sessionMaxAgeSeconds();
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax" as const,
     path: "/",
-    maxAge: sessionMaxAgeSeconds(),
+    maxAge,
+    expires: new Date(Date.now() + maxAge * 1000),
   };
 }
 
