@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import { CommandPaletteProvider } from "@/components/layout/command-palette";
+import { RouteProgress } from "@/components/layout/route-progress";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -34,6 +36,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <CommandPaletteProvider>
+            <Suspense fallback={null}>
+              <RouteProgress />
+            </Suspense>
             {children}
             <Toaster
               theme="system"

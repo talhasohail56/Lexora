@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     const error = new URLSearchParams(window.location.search).get("error");
@@ -34,10 +32,9 @@ export default function LoginPage() {
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Login failed");
       toast.success("Welcome back!");
-      router.push("/dashboard");
+      window.location.assign("/dashboard");
     } catch (e: any) {
       toast.error(e.message);
-    } finally {
       setLoading(false);
     }
   }

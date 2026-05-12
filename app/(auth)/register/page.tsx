@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,6 @@ export default function RegisterPage() {
     planCode: "STARTER",
   });
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const googleHref = `/api/auth/google?role=${form.role}&plan=${encodeURIComponent(form.planCode)}`;
 
   useEffect(() => {
@@ -50,10 +48,9 @@ export default function RegisterPage() {
         toast.error(`Account created, but email failed: ${data.emailError || "unknown Resend error"}`);
       }
       if (data.devOtp) toast.message(`Local fallback OTP: ${data.devOtp}`);
-      router.push(`/verify-otp?email=${encodeURIComponent(form.email)}`);
+      window.location.assign(`/verify-otp?email=${encodeURIComponent(form.email)}`);
     } catch (e: any) {
       toast.error(e.message);
-    } finally {
       setLoading(false);
     }
   }

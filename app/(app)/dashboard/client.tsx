@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { FileText, MessageSquare, Bell, AlertCircle, ArrowUpRight, Plus, Sparkles, ScrollText, Shield, GitCompare } from "lucide-react";
 import { GlowCard } from "@/components/animated/glow-card";
@@ -24,21 +26,40 @@ export function DashboardClient({
   stats: { docCount: number; avgRisk: number; notifications: number; chatSessions: number };
   recent: { id: string; name: string; status: string; risk: number; type: string; clauses: number; risks: number; createdAt: string }[];
 }) {
-  const tiles = [
+  const router = useRouter();
+  const tiles = useMemo(() => [
     { icon: FileText,      label: "Documents",       value: stats.docCount,      href: "/documents",   color: "from-lex-500 to-cyan-500" },
     { icon: AlertCircle,   label: "Avg risk score",  value: stats.avgRisk,        suffix: "/100",       href: "/documents",   color: "from-amber-500 to-orange-500" },
     { icon: MessageSquare, label: "Chat sessions",   value: stats.chatSessions,  href: "/chat",        color: "from-amber-500 to-rose-500" },
     { icon: Bell,          label: "Unread alerts",   value: stats.notifications, href: "/notifications", color: "from-emerald-500 to-teal-500" },
-  ];
+  ], [stats.avgRisk, stats.chatSessions, stats.docCount, stats.notifications]);
 
-  const quickActions = [
+  const quickActions = useMemo(() => [
     { icon: Plus,        label: "Upload a contract", desc: "PDF or DOCX up to 20 MB",         href: "/documents/upload", color: "from-lex-500 to-amber-500" },
     { icon: MessageSquare, label: "Ask AI",           desc: "Get answers grounded in your docs", href: "/chat", color: "from-sky-500 to-indigo-500" },
     { icon: ScrollText,  label: "Draft a contract",  desc: "Generate from templates",          href: "/draft", color: "from-emerald-500 to-teal-500" },
     { icon: Shield,      label: "Compliance check",  desc: "Run hybrid regex + LLM eval",      href: "/compliance", color: "from-amber-500 to-orange-500" },
     { icon: GitCompare,  label: "Compare docs",      desc: "2-way or 3-way diff",              href: "/compare", color: "from-emerald-600 to-rose-500" },
     { icon: Sparkles,    label: "Negotiate",         desc: "AI opposing counsel",              href: "/negotiator", color: "from-rose-500 to-red-500" },
-  ];
+  ], []);
+
+  useEffect(() => {
+    const hrefs = Array.from(new Set([
+      ...tiles.map((item) => item.href),
+      ...quickActions.map((item) => item.href),
+      ...recent.slice(0, 3).map((item) => `/documents/${item.id}`),
+      "/billing",
+      "/settings",
+    ]));
+
+    const prefetch = () => hrefs.forEach((href) => router.prefetch(href));
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(prefetch, { timeout: 1600 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+    const timeoutId = globalThis.setTimeout(prefetch, 450);
+    return () => globalThis.clearTimeout(timeoutId);
+  }, [quickActions, recent, router, tiles]);
 
   return (
     <PageTransition>

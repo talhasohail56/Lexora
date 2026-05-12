@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useRef, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { GlowCard } from "@/components/animated/glow-card";
@@ -10,7 +10,6 @@ import { Loader2, Mail } from "lucide-react";
 
 function VerifyOtpInner() {
   const params = useSearchParams();
-  const router = useRouter();
   const email = params.get("email") || "";
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
@@ -42,10 +41,11 @@ function VerifyOtpInner() {
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Verification failed");
       toast.success("Email verified. Please sign in.");
-      router.push("/login");
+      window.location.assign("/login");
     } catch (e: any) {
       toast.error(e.message);
-    } finally { setLoading(false); }
+      setLoading(false);
+    }
   }
 
   async function resend() {
