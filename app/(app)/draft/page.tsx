@@ -1,0 +1,201 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { ScrollText, Loader2, Save, History, Download, Sparkles } from "lucide-react";
+import { GlowCard } from "@/components/animated/glow-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageTransition } from "@/components/animated/page-transition";
+import { toast } from "sonner";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+const TEMPLATES = [
+  { type: "NDA", label: "Mutual NDA", desc: "Non-Disclosure Agreement", color: "from-lex-500 to-cyan-500" },
+  { type: "EMPLOYMENT", label: "Employment", desc: "Employment contract", color: "from-emerald-500 to-teal-500" },
+  { type: "RENTAL", label: "Rental / Lease", desc: "Property lease", color: "from-amber-500 to-orange-500" },
+  { type: "SERVICE", label: "Service Agreement", desc: "Services / consultancy", color: "from-amber-500 to-rose-500" },
+  { type: "PARTNERSHIP", label: "Partnership", desc: "Joint venture / partnership", color: "from-teal-700 to-amber-500" },
+];
+
+export default function DraftPage() {
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [selectedType, setSelectedType] = useState("NDA");
+  const [title, setTitle] = useState("Untitled draft");
+  const [parties, setParties] = useState({ partyA: "Acme Inc.", partyB: "XYZ Ltd.", effectiveDate: "2026-06-01", jurisdiction: "Pakistan", confidentialityPeriod: "3 years" });
+  const [loading, setLoading] = useState(false);
+  const [content, setContent] = useState("");
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+  const [versionHistory, setVersionHistory] = useState<any[]>([]);
+
+  useEffect(() => { refresh(); }, []);
+
+  async function refresh() {
+    const r = await fetch("/api/draft");
+    const data = await r.json();
+    setDrafts(Array.isArray(data) ? data : []);
+  }
+
+  async function generate() {
+    setLoading(true);
+    try {
+      const r = await fetch("/api/draft/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateType: selectedType, title, parties }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error);
+      setContent(data.content);
+      setCurrentDraftId(data.id);
+      toast.success("Draft generated");
+      refresh();
+    } catch (e: any) { toast.error(e.message); }
+    finally { setLoading(false); }
+  }
+
+  async function save() {
+    if (!currentDraftId) return;
+    const r = await fetch(`/api/draft/${currentDraftId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    });
+    if (r.ok) { toast.success("Version saved"); refresh(); }
+    else toast.error("Save failed");
+  }
+
+  function downloadTxt() {
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${title}.txt`;
+    a.click();
+  }
+
+  async function loadDraft(id: string) {
+    const r = await fetch(`/api/draft/${id}`);
+    const data = await r.json();
+    setCurrentDraftId(data.id);
+    setTitle(data.title);
+    setContent(data.content);
+    setSelectedType(data.templateType);
+    setVersionHistory(JSON.parse(data.versionHistory || "[]"));
+  }
+
+  return (
+    <PageTransition>
+      <div className="grid grid-cols-12 gap-4 max-w-7xl">
+        <GlowCard className="col-span-12 lg:col-span-3 p-4">
+          <h3 className="font-semibold mb-3 flex items-center gap-2"><ScrollText className="h-4 w-4" /> Drafts</h3>
+          <div className="space-y-1.5 max-h-[60vh] overflow-y-auto scrollbar-thin">
+            {drafts.length === 0 && <p className="text-xs text-muted-foreground">No drafts yet</p>}
+            {drafts.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => loadDraft(d.id)}
+                className={`w-full text-left p-2 rounded-md text-sm transition-colors ${
+                  currentDraftId === d.id ? "bg-accent" : "hover:bg-accent/40"
+                }`}
+              >
+                <div className="font-medium truncate">{d.title}</div>
+                <div className="text-[10px] text-muted-foreground">{d.templateType} · v{d.version}</div>
+              </button>
+            ))}
+          </div>
+        </GlowCard>
+
+        <div className="col-span-12 lg:col-span-9 space-y-4">
+          <GlowCard className="p-5">
+            <Tabs defaultValue="config">
+              <TabsList>
+                <TabsTrigger value="config">Configure</TabsTrigger>
+                <TabsTrigger value="editor">Editor</TabsTrigger>
+                <TabsTrigger value="history">History ({versionHistory.length})</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="config" className="space-y-4">
+                <div>
+                  <Label>Template</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-1">
+                    {TEMPLATES.map((t) => (
+                      <button
+                        key={t.type}
+                        onClick={() => setSelectedType(t.type)}
+                        className={`p-3 rounded-lg border text-left text-xs transition-all ${
+                          selectedType === t.type ? "border-lex-500 bg-lex-500/10" : "border-border bg-card/40 hover:border-lex-500/40"
+                        }`}
+                      >
+                        <div className={`h-8 w-8 rounded-md bg-gradient-to-br ${t.color} mb-2`} />
+                        <div className="font-medium text-sm">{t.label}</div>
+                        <div className="text-muted-foreground">{t.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Draft title</Label>
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>Party A</Label><Input value={parties.partyA} onChange={(e) => setParties({ ...parties, partyA: e.target.value })} /></div>
+                  <div><Label>Party B</Label><Input value={parties.partyB} onChange={(e) => setParties({ ...parties, partyB: e.target.value })} /></div>
+                  <div><Label>Effective date</Label><Input type="date" value={parties.effectiveDate} onChange={(e) => setParties({ ...parties, effectiveDate: e.target.value })} /></div>
+                  <div><Label>Jurisdiction</Label><Input value={parties.jurisdiction} onChange={(e) => setParties({ ...parties, jurisdiction: e.target.value })} /></div>
+                </div>
+
+                <Button onClick={generate} disabled={loading} variant="gradient" size="lg">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Sparkles className="h-4 w-4" /> Generate draft</>}
+                </Button>
+              </TabsContent>
+
+              <TabsContent value="editor" className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1" />
+                  <Button variant="outline" onClick={save} disabled={!currentDraftId}><Save className="h-4 w-4" /> Save</Button>
+                  <Button variant="outline" onClick={downloadTxt} disabled={!content}><Download className="h-4 w-4" /> Download</Button>
+                </div>
+                <Textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  rows={28}
+                  className="font-mono text-xs leading-relaxed"
+                  placeholder="Generated draft will appear here…"
+                />
+              </TabsContent>
+
+              <TabsContent value="history" className="space-y-2">
+                {versionHistory.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No prior versions yet.</p>
+                ) : (
+                  versionHistory.map((v, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="p-3 rounded-lg border bg-card/40"
+                    >
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline">v{v.version}</Badge>
+                        <span className="text-xs text-muted-foreground">{new Date(v.savedAt).toLocaleString()}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2 line-clamp-3">{v.content.slice(0, 300)}…</p>
+                    </motion.div>
+                  ))
+                )}
+              </TabsContent>
+            </Tabs>
+          </GlowCard>
+        </div>
+      </div>
+    </PageTransition>
+  );
+}

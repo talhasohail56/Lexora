@@ -1,0 +1,423 @@
+// Lexora — AI Paralegal Assistant
+// Prisma schema implementing all 16 tables from the FYP report.
+// PostgreSQL production database. Local snapshots can still be exported from prisma/dev.db.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =================== ENUMS (SQLite uses strings, but we keep Prisma enums via string types) ===================
+// Note: SQLite has no native enums. We use String + Zod validation at the boundary.
+
+// =================== 1. USERS ===================
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  name         String
+  role         String   @default("USER") // USER | LAWYER | ADMIN
+  isVerified   Boolean  @default(false)
+  status       String   @default("ACTIVE") // ACTIVE | SUSPENDED | BANNED
+  otpHash      String?
+  otpExpiry    DateTime?
+  barNumber    String?
+  jurisdiction String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  documents       Document[]
+  chatSessions    ChatSession[]
+  draftedDocuments DraftedDocument[]
+  complianceChecks ComplianceCheck[]
+  documentSharesBy DocumentShare[]   @relation("SharedBy")
+  documentSharesTo DocumentShare[]   @relation("SharedWith")
+  annotations     Annotation[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  complianceRulesCreated ComplianceRule[]
+  legalTemplatesCreated  LegalTemplate[]
+  subscriptions   Subscription[]
+  usageEvents     UsageEvent[]
+}
+
+// =================== 19. SUBSCRIPTION_PLANS ===================
+model Plan {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  description     String
+  audienceRole    String   @default("USER") // USER | LAWYER | ALL
+  priceCents      Int      @default(0)
+  billingInterval String   @default("MONTH") // MONTH | YEAR
+  features        String   @default("[]") // JSON array
+  limits          String   @default("{}") // JSON map
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@index([audienceRole])
+  @@index([isActive])
+}
+
+// =================== 20. SUBSCRIPTIONS ===================
+model Subscription {
+  id                     String   @id @default(cuid())
+  userId                 String
+  planId                 String
+  status                 String   @default("TRIALING") // TRIALING | ACTIVE | PAST_DUE | CANCELED | EXPIRED
+  roleScope              String   @default("USER") // USER | LAWYER | ALL
+  seats                  Int      @default(1)
+  currentPeriodStart     DateTime @default(now())
+  currentPeriodEnd       DateTime
+  trialEndsAt            DateTime?
+  cancelAtPeriodEnd      Boolean  @default(false)
+  provider               String   @default("MANUAL") // MANUAL | STRIPE
+  providerCustomerId     String?
+  providerSubscriptionId String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([currentPeriodEnd])
+}
+
+// =================== 21. USAGE_EVENTS ===================
+model UsageEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String
+  quantity  Int      @default(1)
+  metadata  String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([feature])
+  @@index([createdAt])
+}
+
+// =================== 2. DOCUMENTS ===================
+model Document {
+  id             String   @id @default(cuid())
+  userId         String
+  originalName   String
+  storagePath    String
+  mimeType       String
+  fileSize       Int
+  documentType   String?  // NDA | EMPLOYMENT | RENTAL | SERVICE | PARTNERSHIP | GENERAL
+  status         String   @default("UPLOADED") // UPLOADED | EXTRACTING | ANALYSING | COMPLETED | FAILED
+  extractedText  String?
+  summary        String?
+  riskScore      Float?
+  analysisResult String?  // JSON
+  processingTime Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clauses          Clause[]
+  risks            Risk[]
+  embeddings       DocumentEmbedding[]
+  complianceChecks ComplianceCheck[]
+  annotations      Annotation[]
+  shares           DocumentShare[]
+  timelineEvents   TimelineEvent[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+// =================== 3. CLAUSES ===================
+model Clause {
+  id          String   @id @default(cuid())
+  documentId  String
+  clauseType  String   // Confidentiality | Liability | Indemnification | Termination | Payment | IP | Dispute | GoverningLaw | NonCompete | Warranty | ForceMajeure | Amendment | Other
+  text        String
+  startPos    Int?
+  endPos      Int?
+  confidence  Float
+  explanation String?
+  createdAt   DateTime @default(now())
+
+  document    Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  risks       Risk[]
+  annotations Annotation[]
+
+  @@index([documentId])
+}
+
+// =================== 4. RISKS ===================
+model Risk {
+  id          String   @id @default(cuid())
+  documentId  String
+  clauseId    String?
+  severity    String   // LOW | MEDIUM | HIGH | CRITICAL
+  category    String
+  description String
+  suggestion  String
+  confidence  Float
+  createdAt   DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  clause   Clause?  @relation(fields: [clauseId], references: [id], onDelete: SetNull)
+
+  @@index([documentId])
+}
+
+// =================== 5. DOCUMENT_EMBEDDINGS ===================
+model DocumentEmbedding {
+  id         String   @id @default(cuid())
+  documentId String
+  chunkIndex Int
+  chunkText  String
+  embedding  String   // JSON-encoded float array
+  tokenCount Int?
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
+
+// =================== 17. LEGAL_SOURCES ===================
+model LegalSource {
+  id             String   @id @default(cuid())
+  countryCode    String   @default("PK")
+  jurisdiction   String
+  title          String
+  sourceType     String   // ACT | REGULATION | GUIDELINE | BILL | NOTE
+  authority      String
+  citation       String?
+  officialUrl    String   @unique
+  effectiveDate  DateTime?
+  lastReviewedAt DateTime?
+  summary        String
+  tags           String   @default("[]") // JSON array
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  chunks LegalCorpusChunk[]
+
+  @@index([countryCode])
+  @@index([jurisdiction])
+}
+
+// =================== 18. LEGAL_CORPUS_CHUNKS ===================
+model LegalCorpusChunk {
+  id         String   @id @default(cuid())
+  sourceId   String
+  chunkIndex Int
+  heading    String
+  chunkText  String
+  embedding  String   // JSON-encoded float array
+  tokenCount Int?
+  createdAt  DateTime @default(now())
+
+  source LegalSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, chunkIndex])
+  @@index([sourceId])
+}
+
+// =================== 6. COMPLIANCE_RULES ===================
+model ComplianceRule {
+  id           String   @id @default(cuid())
+  name         String
+  description  String
+  category     String
+  jurisdiction String?
+  rulePattern  String?
+  severity     String   // LOW | MEDIUM | HIGH | CRITICAL
+  requiresLLM  Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  creator User              @relation(fields: [createdBy], references: [id])
+  checks  ComplianceCheck[]
+}
+
+// =================== 7. COMPLIANCE_CHECKS ===================
+model ComplianceCheck {
+  id              String   @id @default(cuid())
+  documentId      String
+  userId          String
+  ruleId          String
+  status          String   // COMPLIANT | NON_COMPLIANT | PARTIAL
+  matchedText     String?
+  confidenceScore Float?
+  explanation     String?
+  checkedAt       DateTime @default(now())
+
+  document Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User           @relation(fields: [userId], references: [id])
+  rule     ComplianceRule @relation(fields: [ruleId], references: [id])
+
+  @@index([documentId])
+  @@index([userId])
+}
+
+// =================== 8. CHAT_SESSIONS ===================
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String   @default("New Chat")
+  status    String   @default("ACTIVE") // ACTIVE | ARCHIVED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@index([userId])
+}
+
+// =================== 9. CHAT_MESSAGES ===================
+model ChatMessage {
+  id           String   @id @default(cuid())
+  sessionId    String
+  role         String   // USER | ASSISTANT
+  content      String
+  sourceChunks String?  // JSON array of {documentId, chunkIndex, similarity}
+  tokensUsed   Int?
+  createdAt    DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+// =================== 10. DRAFTED_DOCUMENTS ===================
+model DraftedDocument {
+  id             String   @id @default(cuid())
+  userId         String
+  templateType   String   // NDA | EMPLOYMENT | RENTAL | SERVICE | PARTNERSHIP
+  title          String
+  content        String
+  version        Int      @default(1)
+  versionHistory String   @default("[]") // JSON
+  parties        String   // JSON
+  status         String   @default("DRAFT") // DRAFT | FINALISED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// =================== 11. ANNOTATIONS ===================
+model Annotation {
+  id         String   @id @default(cuid())
+  documentId String
+  clauseId   String?
+  authorId   String
+  content    String
+  isResolved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  clause   Clause?  @relation(fields: [clauseId], references: [id], onDelete: SetNull)
+  author   User     @relation(fields: [authorId], references: [id])
+
+  @@index([documentId])
+}
+
+// =================== 12. DOCUMENT_SHARES ===================
+model DocumentShare {
+  id           String   @id @default(cuid())
+  documentId   String
+  sharedById   String
+  sharedWithId String
+  permission   String // VIEW_ONLY | ANNOTATE
+  createdAt    DateTime @default(now())
+
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  sharedBy   User     @relation("SharedBy", fields: [sharedById], references: [id], onDelete: Cascade)
+  sharedWith User     @relation("SharedWith", fields: [sharedWithId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, sharedWithId])
+}
+
+// =================== 13. TIMELINE_EVENTS ===================
+model TimelineEvent {
+  id           String   @id @default(cuid())
+  documentId   String
+  eventType    String   // DEADLINE | NOTICE_PERIOD | PAYMENT | MILESTONE | RENEWAL | EXPIRY
+  description  String
+  eventDate    DateTime?
+  relativeExpr String?
+  clauseRef    String?
+  urgency      String   // PAST_DUE | UPCOMING | FUTURE
+  createdAt    DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
+
+// =================== 14. NOTIFICATIONS ===================
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String   // ANALYSIS_COMPLETE | ANALYSIS_FAILED | COMPLIANCE_COMPLETE | DOCUMENT_SHARED | ANNOTATION_ADDED | TIMELINE_DUE | PASSWORD_RESET | ACCOUNT_STATUS_CHANGE
+  title      String
+  body       String
+  resourceId String?
+  isRead     Boolean  @default(false)
+  priority   String   @default("MEDIUM") // LOW | MEDIUM | HIGH
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// =================== 15. AUDIT_LOGS ===================
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String?
+  action       String   // LOGIN | LOGOUT | REGISTER | UPLOAD | DELETE | ANALYSE | COMPLIANCE_RUN | DRAFT_CREATE | ROLE_CHANGE | STATUS_CHANGE | SHARE | ANNOTATE | EXPORT
+  resourceType String?
+  resourceId   String?
+  ipAddress    String?
+  userAgent    String?
+  metadata     String?  // JSON
+  createdAt    DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// =================== 16. LEGAL_TEMPLATES ===================
+model LegalTemplate {
+  id           String   @id @default(cuid())
+  createdBy    String
+  name         String
+  category     String
+  jurisdiction String?
+  promptText   String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  creator User @relation(fields: [createdBy], references: [id])
+}
