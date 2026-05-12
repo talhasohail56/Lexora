@@ -42,6 +42,7 @@ export default async function DocPage({ params }: { params: { id: string } }) {
       email: member.user.email,
       avatarUrl: member.user.avatarUrl,
     })) ?? [];
+  const canUseTeamSharing = Boolean(workspace?.firmPlanActive);
   const canAnnotate =
     (s.role === "LAWYER" || s.role === "ADMIN") &&
     (doc.userId === s.userId || visibleDoc.shares.some((share: any) => share.sharedWithId === s.userId && share.permission === "ANNOTATE"));
@@ -52,7 +53,7 @@ export default async function DocPage({ params }: { params: { id: string } }) {
       sessionUserId={s.userId}
       sessionRole={s.role}
       teamMembers={teamMembers}
-      canShare={doc.userId === s.userId && Boolean(workspace)}
+      canShare={doc.userId === s.userId && Boolean(workspace) && canUseTeamSharing}
       canAnnotate={canAnnotate}
     />
   );

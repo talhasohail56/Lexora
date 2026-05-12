@@ -12,5 +12,6 @@ export async function GET() {
   return NextResponse.json({
     workspace,
     canCreateFirm,
+    firmPlanActive: workspace?.firmPlanActive ?? false,
   });
 }

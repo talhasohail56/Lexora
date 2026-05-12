@@ -23,6 +23,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const workspace = await getTeamWorkspace(session.userId);
     if (!workspace) return NextResponse.json({ error: "Create or join a firm workspace before sharing" }, { status: 400 });
+    if (!workspace.firmPlanActive) {
+      return NextResponse.json({ error: "Firm workspace is paused. Upgrade back to the Firm plan to share documents with the team." }, { status: 402 });
+    }
 
     const targetMembers = data.scope === "TEAM"
       ? workspace.firm.members.filter((member: any) => member.userId !== session.userId)

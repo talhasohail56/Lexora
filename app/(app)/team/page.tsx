@@ -16,6 +16,7 @@ import { formatRelative } from "@/lib/utils";
 type TeamState = {
   workspace: any | null;
   canCreateFirm: boolean;
+  firmPlanActive: boolean;
 };
 
 export default function TeamPage() {
@@ -37,6 +38,7 @@ export default function TeamPage() {
   }, []);
 
   const firm = state?.workspace?.firm;
+  const firmPlanActive = Boolean(state?.workspace?.firmPlanActive);
   const members = firm?.members ?? [];
   const invitations = firm?.invitations ?? [];
   const canManage = Boolean(state?.workspace?.canManage);
@@ -115,7 +117,9 @@ export default function TeamPage() {
                 {firm ? firm.name : "Create your firm account."}
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-white/55">
-                Invite colleagues by email, keep firm access separate from personal accounts, and share only the documents each member should see.
+                {firm && !firmPlanActive
+                  ? "This firm workspace is paused because the owner is no longer on the Firm plan."
+                  : "Invite colleagues by email, keep firm access separate from personal accounts, and share only the documents each member should see."}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:min-w-[320px]">
@@ -125,7 +129,24 @@ export default function TeamPage() {
           </div>
         </motion.section>
 
-        {!firm ? (
+        {firm && !firmPlanActive ? (
+          <GlowCard className="p-6">
+            <div className="mb-5 flex items-start gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                <Shield className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">Firm workspace paused</h2>
+                <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+                  Members and invitations are kept, but team access, invitations, and firm document sharing are disabled until the firm owner upgrades back to the Firm plan.
+                </p>
+              </div>
+            </div>
+            <Button asChild variant="gradient">
+              <a href="/billing">Reactivate Firm plan</a>
+            </Button>
+          </GlowCard>
+        ) : !firm ? (
           <GlowCard className="p-6">
             <div className="mb-5 flex items-start gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-lex-500/10 text-lex-600">

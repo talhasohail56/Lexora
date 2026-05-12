@@ -45,11 +45,13 @@ export async function getTeamWorkspace(userId: string) {
     },
   });
   if (!firm) return null;
+  const firmPlanActive = await userHasFirmPlan(firm.ownerId);
 
   return {
     firm,
     membership,
-    canManage: canManageFirm(membership.role),
+    firmPlanActive,
+    canManage: firmPlanActive && canManageFirm(membership.role),
   };
 }
 
@@ -67,10 +69,10 @@ export async function userHasFirmPlan(userId: string) {
 }
 
 export async function createFirmWorkspace(input: { userId: string; name: string }) {
-  const existing = await getActiveFirmMembership(input.userId);
-  if (existing) throw new Error("You are already part of a firm workspace");
   const hasPlan = await userHasFirmPlan(input.userId);
   if (!hasPlan) throw new Error("Firm workspace requires the Firm plan");
+  const existing = await getActiveFirmMembership(input.userId);
+  if (existing) throw new Error("You are already part of a firm workspace");
 
   const firm = await prisma.firm.create({
     data: {
@@ -115,6 +117,9 @@ export async function inviteFirmMember(input: {
 
   const firm = await prisma.firm.findUnique({ where: { id: input.firmId } });
   if (!firm) throw new Error("Firm not found");
+  if (!(await userHasFirmPlan(firm.ownerId))) {
+    throw new Error("Firm workspace is paused. Upgrade the firm owner back to the Firm plan to invite members.");
+  }
 
   await prisma.firmInvitation.updateMany({
     where: { firmId: input.firmId, email: normalizedEmail, status: "PENDING" },
@@ -160,6 +165,9 @@ export async function acceptFirmInvitation(token: string, userId: string) {
     include: { firm: true, invitedBy: { select: { id: true, name: true } } },
   });
   if (!invitation) throw new Error("Invitation not found");
+  if (!(await userHasFirmPlan(invitation.firm.ownerId))) {
+    throw new Error("Firm workspace is paused. Ask the firm owner to reactivate the Firm plan.");
+  }
   if (invitation.status !== "PENDING") throw new Error("Invitation is no longer active");
   if (invitation.expiresAt.getTime() < Date.now()) {
     await prisma.firmInvitation.update({ where: { id: invitation.id }, data: { status: "EXPIRED" } });
