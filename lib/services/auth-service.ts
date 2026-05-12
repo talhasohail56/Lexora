@@ -123,7 +123,7 @@ export async function login(
     name: user.name,
   });
 
-  await auditLog({
+  void auditLog({
     userId: user.id,
     action: "LOGIN",
     resourceType: "User",
@@ -180,7 +180,7 @@ export async function loginWithGoogle(
     name: user.name,
   });
 
-  await auditLog({
+  void auditLog({
     userId: user.id,
     action: isNewUser ? "GOOGLE_REGISTER" : "GOOGLE_LOGIN",
     resourceType: "User",

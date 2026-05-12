@@ -150,7 +150,6 @@ export async function createInitialSubscription(userId: string, role: string, re
 }
 
 export async function ensureSubscriptionForUser(userId: string, role: string) {
-  await seedDefaultPlans();
   const current = await prisma.subscription.findFirst({
     where: { userId, status: { in: ACTIVE_STATUSES } },
     include: { plan: true },

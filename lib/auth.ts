@@ -6,6 +6,7 @@ import { prisma } from "./db";
 const COOKIE = "lexora_session";
 export const SESSION_COOKIE = COOKIE;
 const secret = () => new TextEncoder().encode(process.env.JWT_SECRET || "lexora-dev-secret");
+const DEFAULT_SESSION_DAYS = 90;
 
 export type SessionPayload = {
   userId: string;
@@ -22,11 +23,18 @@ export async function verifyPassword(plain: string, hash: string) {
 }
 
 export async function signSession(payload: SessionPayload) {
+  const maxAge = sessionMaxAgeSeconds();
   return new SignJWT(payload as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("24h")
+    .setExpirationTime(`${maxAge}s`)
     .sign(secret());
+}
+
+export function sessionMaxAgeSeconds() {
+  const days = Number(process.env.SESSION_MAX_AGE_DAYS || DEFAULT_SESSION_DAYS);
+  const safeDays = Number.isFinite(days) && days > 0 ? days : DEFAULT_SESSION_DAYS;
+  return Math.round(safeDays * 24 * 60 * 60);
 }
 
 export function sessionCookieOptions() {
@@ -35,7 +43,7 @@ export function sessionCookieOptions() {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax" as const,
     path: "/",
-    maxAge: 60 * 60 * 24,
+    maxAge: sessionMaxAgeSeconds(),
   };
 }
 

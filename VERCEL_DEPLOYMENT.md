@@ -30,6 +30,8 @@ GOOGLE_REDIRECT_URI="https://YOUR_VERCEL_DOMAIN/api/auth/google/callback"
 ```env
 DATABASE_URL=
 JWT_SECRET=
+SESSION_MAX_AGE_DAYS=
+WARMUP_SECRET=
 OPENAI_API_KEY=
 OPENAI_MODEL=
 OPENAI_EMBED_MODEL=
@@ -63,3 +65,41 @@ For Supabase pooler connections, keep Prisma constrained to one DB connection pe
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:6543/postgres?sslmode=require&pgbouncer=true&connection_limit=3&pool_timeout=20"
 ```
+
+## Reducing Cold Database Latency
+
+This project runs Vercel Functions in Singapore via `vercel.json`:
+
+```json
+{ "regions": ["sin1"] }
+```
+
+That keeps the Node.js functions close to the Supabase `ap-southeast-1` database and removes avoidable cross-region latency.
+
+The app also exposes a lightweight warmup endpoint:
+
+```text
+GET /api/health/warmup
+```
+
+If `WARMUP_SECRET` is set, call it with:
+
+```bash
+curl -H "Authorization: Bearer $WARMUP_SECRET" https://YOUR_VERCEL_DOMAIN/api/health/warmup
+```
+
+Use an external uptime monitor such as UptimeRobot, Better Stack, cron-job.org, or GitHub Actions to call this every 5-10 minutes. Vercel Hobby cron jobs only run daily, so they are not enough for frequent warming. Vercel Pro cron can run every minute if you later upgrade.
+
+This repo includes `.github/workflows/keep-warm.yml`, which pings:
+
+```text
+https://lexora-sage.vercel.app/api/health/warmup
+```
+
+every 5 minutes. If the deployment domain changes, set this GitHub repository variable:
+
+```text
+LEXORA_WARMUP_URL=https://YOUR_VERCEL_DOMAIN/api/health/warmup
+```
+
+If you set `WARMUP_SECRET` in Vercel, add the same value as a GitHub Actions secret named `WARMUP_SECRET`.

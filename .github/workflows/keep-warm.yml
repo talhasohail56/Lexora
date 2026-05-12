@@ -1,0 +1,32 @@
+name: Keep Lexora Warm
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: keep-lexora-warm
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping warmup endpoint
+        env:
+          LEXORA_WARMUP_URL: ${{ vars.LEXORA_WARMUP_URL }}
+          WARMUP_SECRET: ${{ secrets.WARMUP_SECRET }}
+        run: |
+          set -euo pipefail
+          url="${LEXORA_WARMUP_URL:-https://lexora-sage.vercel.app/api/health/warmup}"
+          if [ -n "${WARMUP_SECRET:-}" ]; then
+            curl --fail --show-error --silent --max-time 20 \
+              -H "Authorization: Bearer ${WARMUP_SECRET}" \
+              "$url"
+          else
+            curl --fail --show-error --silent --max-time 20 "$url"
+          fi
