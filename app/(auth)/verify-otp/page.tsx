@@ -59,7 +59,12 @@ function VerifyOtpInner() {
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Could not resend OTP");
-      toast.success(data.devOtp ? `New dev OTP: ${data.devOtp}` : "New OTP sent to your email.");
+      if (data.emailSent) {
+        toast.success("New OTP sent. Check inbox or spam.");
+      } else {
+        toast.error(`OTP email failed: ${data.emailError || "unknown Resend error"}`);
+      }
+      if (data.devOtp) toast.message(`Local fallback OTP: ${data.devOtp}`);
       setDigits(Array(6).fill(""));
       refs.current[0]?.focus();
     } catch (e: any) {
@@ -80,6 +85,9 @@ function VerifyOtpInner() {
         <h1 className="text-2xl font-bold text-center mb-1.5">Verify your email</h1>
         <p className="text-sm text-muted-foreground text-center mb-6">
           Enter the 6-digit code sent to <span className="text-foreground font-medium">{email}</span>
+        </p>
+        <p className="mb-5 rounded-lg border border-border bg-muted/40 p-3 text-center text-xs text-muted-foreground">
+          The email comes from <span className="font-medium text-foreground">onboarding@resend.dev</span>. Check spam/promotions if it is not in inbox.
         </p>
         <form onSubmit={submit} className="space-y-6">
           <div className="flex justify-center gap-2">

@@ -44,12 +44,12 @@ export default function RegisterPage() {
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Registration failed");
-      const message = data.devOtp
-        ? `Account created. Dev OTP: ${data.devOtp}`
-        : data.emailSent
-          ? "Account created. Check email for OTP."
-          : "Account created, but OTP email was not sent.";
-      toast.success(message);
+      if (data.emailSent) {
+        toast.success("Account created. Check your inbox or spam for the OTP.");
+      } else {
+        toast.error(`Account created, but email failed: ${data.emailError || "unknown Resend error"}`);
+      }
+      if (data.devOtp) toast.message(`Local fallback OTP: ${data.devOtp}`);
       router.push(`/verify-otp?email=${encodeURIComponent(form.email)}`);
     } catch (e: any) {
       toast.error(e.message);

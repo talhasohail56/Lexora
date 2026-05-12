@@ -1,4 +1,8 @@
+import nodemailer from "nodemailer";
+
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
+
+type EmailResult = { sent: boolean; reason: string | null; provider?: "gmail" | "resend" };
 
 function escapeHtml(value: string) {
   return value
@@ -14,9 +18,59 @@ export async function sendEmail(input: {
   subject: string;
   html: string;
   text: string;
-}) {
+}): Promise<EmailResult> {
+  if (process.env.GMAIL_APP_PASSWORD) {
+    return sendWithGmail(input);
+  }
+
+  return sendWithResend(input);
+}
+
+async function sendWithGmail(input: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}): Promise<EmailResult> {
+  const user = process.env.GMAIL_USER || process.env.LEXORA_SUPPORT_EMAIL;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) return { sent: false, reason: "GMAIL_USER or GMAIL_APP_PASSWORD is not configured", provider: "gmail" };
+
+  const fromName = process.env.EMAIL_FROM_NAME || "Lexora";
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user, pass },
+    });
+
+    await transporter.sendMail({
+      from: `${fromName} <${user}>`,
+      to: input.to,
+      subject: input.subject,
+      text: input.text,
+      html: input.html,
+      replyTo: process.env.RESEND_REPLY_TO_EMAIL || process.env.LEXORA_SUPPORT_EMAIL || user,
+    });
+
+    return { sent: true, reason: null, provider: "gmail" };
+  } catch (error) {
+    return {
+      sent: false,
+      reason: error instanceof Error ? error.message : "Gmail SMTP send failed",
+      provider: "gmail",
+    };
+  }
+}
+
+async function sendWithResend(input: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}): Promise<EmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return { sent: false, reason: "RESEND_API_KEY is not configured" };
+  if (!apiKey) return { sent: false, reason: "RESEND_API_KEY is not configured", provider: "resend" };
 
   const from = process.env.RESEND_FROM_EMAIL || "Lexora <onboarding@resend.dev>";
   const replyTo = process.env.RESEND_REPLY_TO_EMAIL || process.env.LEXORA_SUPPORT_EMAIL;
@@ -42,10 +96,11 @@ export async function sendEmail(input: {
     return {
       sent: false,
       reason: details || `Resend returned ${response.status}`,
+      provider: "resend",
     };
   }
 
-  return { sent: true, reason: null };
+  return { sent: true, reason: null, provider: "resend" };
 }
 
 export async function sendOtpEmail(input: { to: string; name: string; otp: string }) {
