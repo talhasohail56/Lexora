@@ -62,6 +62,7 @@ export type SubscriptionContext = {
 export const ALWAYS_AVAILABLE_FEATURES: SubscriptionFeature[] = [
   "dashboard",
   "notifications",
+  "team",
   "settings",
   "billing",
 ];
