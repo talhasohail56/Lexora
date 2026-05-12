@@ -21,6 +21,7 @@ export default function UploadPage() {
   const [dragOver, setDragOver] = useState(false);
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [statusText, setStatusText] = useState("Uploading and preparing analysis…");
   const [docType, setDocType] = useState("GENERAL");
 
   const handleFile = (f: File | null) => {
@@ -38,22 +39,32 @@ export default function UploadPage() {
   async function submit() {
     if (!file) return;
     setUploading(true);
-    setProgress(20);
+    setProgress(18);
+    setStatusText("Uploading document…");
     const fd = new FormData();
     fd.append("file", file);
     fd.append("documentType", docType);
+    const timers: number[] = [];
     try {
+      timers.push(
+        window.setTimeout(() => { setProgress(42); setStatusText("Extracting legal text…"); }, 700),
+        window.setTimeout(() => { setProgress(62); setStatusText("Creating RAG chunks and embeddings…"); }, 1800),
+        window.setTimeout(() => { setProgress(82); setStatusText("Detecting clauses and risks…"); }, 3200)
+      );
       const r = await fetch("/api/documents/upload", { method: "POST", body: fd });
-      setProgress(80);
+      timers.forEach(window.clearTimeout);
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Upload failed");
       setProgress(100);
-      toast.success("Uploaded! Analysing in the background…");
-      setTimeout(() => router.push(`/documents/${data.id}`), 600);
+      setStatusText("Analysis complete");
+      toast.success("Analysis complete");
+      setTimeout(() => router.push(`/documents/${data.id}`), 450);
     } catch (e: any) {
+      timers.forEach(window.clearTimeout);
       toast.error(e.message);
       setUploading(false);
       setProgress(0);
+      setStatusText("Uploading and preparing analysis…");
     }
   }
 
@@ -119,7 +130,7 @@ export default function UploadPage() {
                       <Progress value={progress} />
                       <div className="mt-2 text-xs text-muted-foreground flex items-center gap-2">
                         {progress === 100 ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                        {progress === 100 ? "Done" : "Uploading and starting analysis…"}
+                        {progress === 100 ? "Done" : statusText}
                       </div>
                     </div>
                   )}

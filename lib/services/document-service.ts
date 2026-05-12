@@ -73,12 +73,14 @@ export async function uploadDocument(opts: {
 
   await auditLog({ userId: opts.userId, action: "UPLOAD", resourceType: "Document", resourceId: doc.id, metadata: { fileSize: opts.file.size } });
 
-  // Kick off async pipeline (fire-and-forget).
-  void processDocument(doc.id, buf, opts.file.type).catch(async () => {
+  try {
+    await processDocument(doc.id, buf, opts.file.type);
+  } catch (error) {
     await prisma.document.update({ where: { id: doc.id }, data: { status: "FAILED" } });
-  });
+    throw error;
+  }
 
-  return doc;
+  return prisma.document.findUniqueOrThrow({ where: { id: doc.id } });
 }
 
 export async function processDocument(documentId: string, buffer: Buffer, mime: string) {
