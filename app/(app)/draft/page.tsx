@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ScrollText, Loader2, Save, Download, Sparkles, FileText } from "lucide-react";
+import { ScrollText, Loader2, Save, Download, Sparkles, FileText, Mail } from "lucide-react";
 import { GlowCard } from "@/components/animated/glow-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ export default function DraftPage() {
   const [publishedDocumentId, setPublishedDocumentId] = useState<string | null>(null);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("config");
+  const [emailing, setEmailing] = useState(false);
 
   useEffect(() => {
     refresh();
@@ -92,6 +93,26 @@ export default function DraftPage() {
     const documentId = publishedDocumentId || await save();
     if (!documentId) return;
     window.location.href = `/api/documents/${documentId}/download`;
+  }
+
+  async function emailWord() {
+    if (!currentDraftId) {
+      toast.error("Generate a draft before emailing");
+      return;
+    }
+    setEmailing(true);
+    try {
+      const documentId = await save();
+      if (!documentId) return;
+      const r = await fetch(`/api/draft/${currentDraftId}/email`, { method: "POST" });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || "Could not email draft");
+      toast.success(`DOCX emailed to ${data.email}`);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setEmailing(false);
+    }
   }
 
   async function loadDraft(id: string) {
@@ -179,6 +200,10 @@ export default function DraftPage() {
                   <Input value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1" />
                   <Button variant="outline" onClick={save} disabled={!currentDraftId}><Save className="h-4 w-4" /> Save</Button>
                   <Button variant="outline" onClick={downloadWord} disabled={!content}><Download className="h-4 w-4" /> Word</Button>
+                  <Button variant="outline" onClick={emailWord} disabled={!content || emailing}>
+                    {emailing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                    Email DOCX
+                  </Button>
                   {publishedDocumentId && (
                     <Button variant="ghost" asChild>
                       <a href={`/documents/${publishedDocumentId}`}><FileText className="h-4 w-4" /> Document</a>
