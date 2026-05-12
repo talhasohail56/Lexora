@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   description:
     "An intelligent legal document platform: analysis, RAG search, compliance, drafting, comparison, and more.",
   metadataBase: new URL("http://localhost:3000"),
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
