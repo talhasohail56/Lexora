@@ -132,7 +132,7 @@ export function ChatClient({
 
   return (
     <PageTransition>
-      <div className="grid h-[calc(100vh-8rem)] min-h-0 grid-cols-12 gap-4 overflow-hidden">
+      <div className="grid h-[calc(100dvh-9rem)] min-h-[520px] min-w-0 grid-cols-12 gap-4 overflow-hidden">
         {/* Sessions */}
         <GlowCard className="col-span-12 flex min-h-0 flex-col overflow-hidden p-3 md:col-span-3">
           <Button variant="gradient" onClick={newChat} className="mb-3 shrink-0"><Plus className="h-4 w-4" /> New chat</Button>
@@ -157,7 +157,7 @@ export function ChatClient({
         </GlowCard>
 
         {/* Chat pane */}
-        <GlowCard className="col-span-12 flex min-h-0 flex-col overflow-hidden p-0 md:col-span-9">
+        <GlowCard className="col-span-12 flex h-full min-h-0 flex-col overflow-hidden p-0 md:col-span-9">
           <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
             <Sparkles className="h-4 w-4 text-lex-500" />
             <span className="font-semibold text-sm">RAG Chat</span>
@@ -240,7 +240,7 @@ export function ChatClient({
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-4 pr-3 scrollbar-thin">
+          <div className="h-0 min-h-0 flex-1 space-y-4 overflow-y-scroll overscroll-contain px-6 py-4 pr-3 [scrollbar-gutter:stable]">
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center px-4">
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-lex-500 to-amber-500 flex items-center justify-center text-white mb-4 shadow-glow">
