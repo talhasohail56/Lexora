@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { auditLog } from "./audit-service";
 
 const UPLOAD_DIR = join(process.cwd(), "public", "uploads");
+const IS_READ_ONLY_DEPLOYMENT = process.env.VERCEL === "1" || process.cwd().startsWith("/var/task");
 const ACCEPTED_MIMES = new Set([
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -26,6 +27,24 @@ function checkMagicBytes(buf: Buffer, mime: string): boolean {
   return false;
 }
 
+async function persistUploadIfWritable(safeName: string, buf: Buffer) {
+  const storagePath = `uploads/${safeName}`;
+
+  // Vercel exposes the deployed bundle at /var/task, which is read-only. The app
+  // only needs the bytes during this request because extracted text, chunks, and
+  // analysis are persisted to the database.
+  if (IS_READ_ONLY_DEPLOYMENT) return `volatile:${storagePath}`;
+
+  try {
+    await mkdir(UPLOAD_DIR, { recursive: true });
+    await writeFile(join(UPLOAD_DIR, safeName), buf);
+    return storagePath;
+  } catch (error: any) {
+    if (error?.code === "EROFS") return `volatile:${storagePath}`;
+    throw error;
+  }
+}
+
 export async function uploadDocument(opts: {
   userId: string;
   file: File;
@@ -37,10 +56,8 @@ export async function uploadDocument(opts: {
   const buf = Buffer.from(await opts.file.arrayBuffer());
   if (!checkMagicBytes(buf, opts.file.type)) throw new Error("File header does not match its extension");
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
   const safeName = `${Date.now()}-${opts.file.name.replace(/[^a-z0-9.\-_]/gi, "_")}`;
-  const storagePath = join("uploads", safeName);
-  await writeFile(join(UPLOAD_DIR, safeName), buf);
+  const storagePath = await persistUploadIfWritable(safeName, buf);
 
   const doc = await prisma.document.create({
     data: {
