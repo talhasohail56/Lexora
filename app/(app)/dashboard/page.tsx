@@ -7,41 +7,70 @@ export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const [docCount, doneDocs, recent, notifications, sessions] = await Promise.all([
-    prisma.document.count({ where: { userId: session.userId } }),
-    prisma.document.findMany({
-      where: { userId: session.userId, status: "COMPLETED" },
-      select: { riskScore: true },
-    }),
-    prisma.document.findMany({
-      where: { userId: session.userId },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      include: { _count: { select: { clauses: true, risks: true } } },
-    }),
-    prisma.notification.count({ where: { userId: session.userId, isRead: false } }),
-    prisma.chatSession.count({ where: { userId: session.userId } }),
+  const [statsRows, recent] = await Promise.all([
+    prisma.$queryRaw<
+      {
+        docCount: number;
+        avgRisk: number;
+        notifications: number;
+        chatSessions: number;
+      }[]
+    >`
+      SELECT
+        (SELECT COUNT(*)::int FROM "Document" WHERE "userId" = ${session.userId}) AS "docCount",
+        (
+          SELECT COALESCE(ROUND(AVG("riskScore"))::int, 0)
+          FROM "Document"
+          WHERE "userId" = ${session.userId} AND "status" = 'COMPLETED'
+        ) AS "avgRisk",
+        (SELECT COUNT(*)::int FROM "Notification" WHERE "userId" = ${session.userId} AND "isRead" = false) AS "notifications",
+        (SELECT COUNT(*)::int FROM "ChatSession" WHERE "userId" = ${session.userId}) AS "chatSessions"
+    `,
+    prisma.$queryRaw<
+      {
+        id: string;
+        name: string;
+        status: string;
+        risk: number;
+        type: string;
+        clauses: number;
+        risks: number;
+        createdAt: Date;
+      }[]
+    >`
+      SELECT
+        d."id",
+        d."originalName" AS "name",
+        d."status",
+        COALESCE(d."riskScore", 0)::float8 AS "risk",
+        COALESCE(d."documentType", 'GENERAL') AS "type",
+        COALESCE(c."clauses", 0)::int AS "clauses",
+        COALESCE(r."risks", 0)::int AS "risks",
+        d."createdAt"
+      FROM "Document" d
+      LEFT JOIN (
+        SELECT "documentId", COUNT(*)::int AS "clauses"
+        FROM "Clause"
+        GROUP BY "documentId"
+      ) c ON c."documentId" = d."id"
+      LEFT JOIN (
+        SELECT "documentId", COUNT(*)::int AS "risks"
+        FROM "Risk"
+        GROUP BY "documentId"
+      ) r ON r."documentId" = d."id"
+      WHERE d."userId" = ${session.userId}
+      ORDER BY d."createdAt" DESC
+      LIMIT 5
+    `,
   ]);
 
-  const avgRisk =
-    doneDocs.length === 0
-      ? 0
-      : Math.round(doneDocs.reduce((s, d) => s + (d.riskScore || 0), 0) / doneDocs.length);
+  const stats = statsRows[0] ?? { docCount: 0, avgRisk: 0, notifications: 0, chatSessions: 0 };
 
   return (
     <DashboardClient
       session={session}
-      stats={{ docCount, avgRisk, notifications, chatSessions: sessions }}
-      recent={recent.map((d) => ({
-        id: d.id,
-        name: d.originalName,
-        status: d.status,
-        risk: d.riskScore || 0,
-        type: d.documentType || "GENERAL",
-        clauses: d._count.clauses,
-        risks: d._count.risks,
-        createdAt: d.createdAt.toISOString(),
-      }))}
+      stats={stats}
+      recent={recent.map((d) => ({ ...d, createdAt: d.createdAt.toISOString() }))}
     />
   );
 }

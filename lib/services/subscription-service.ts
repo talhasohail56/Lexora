@@ -16,6 +16,8 @@ import {
 import { auditLog } from "./audit-service";
 
 const ACTIVE_STATUSES = ["ACTIVE", "TRIALING"];
+let planSeedPromise: Promise<void> | null = null;
+let plansSeeded = false;
 
 function addDays(days: number) {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
@@ -42,36 +44,53 @@ function serializePlan(plan: any) {
 }
 
 export async function seedDefaultPlans() {
-  await Promise.all(
-    DEFAULT_PLANS.map((plan) =>
-      prisma.plan.upsert({
-        where: { code: plan.code },
-        update: {
-          name: plan.name,
-          description: plan.description,
-          audienceRole: plan.audienceRole,
-          priceCents: plan.priceCents,
-          billingInterval: plan.billingInterval,
-          features: JSON.stringify(plan.features),
-          limits: JSON.stringify(plan.limits),
-          isActive: true,
-          sortOrder: plan.sortOrder,
-        },
-        create: {
-          code: plan.code,
-          name: plan.name,
-          description: plan.description,
-          audienceRole: plan.audienceRole,
-          priceCents: plan.priceCents,
-          billingInterval: plan.billingInterval,
-          features: JSON.stringify(plan.features),
-          limits: JSON.stringify(plan.limits),
-          isActive: true,
-          sortOrder: plan.sortOrder,
-        },
-      })
-    )
-  );
+  if (plansSeeded) return;
+  if (planSeedPromise) return planSeedPromise;
+
+  planSeedPromise = (async () => {
+    const expectedCodes = DEFAULT_PLANS.map((plan) => plan.code);
+    const existing = await prisma.plan.count({ where: { code: { in: expectedCodes } } });
+
+    if (existing < DEFAULT_PLANS.length) {
+      await Promise.all(
+        DEFAULT_PLANS.map((plan) =>
+          prisma.plan.upsert({
+            where: { code: plan.code },
+            update: {
+              name: plan.name,
+              description: plan.description,
+              audienceRole: plan.audienceRole,
+              priceCents: plan.priceCents,
+              billingInterval: plan.billingInterval,
+              features: JSON.stringify(plan.features),
+              limits: JSON.stringify(plan.limits),
+              isActive: true,
+              sortOrder: plan.sortOrder,
+            },
+            create: {
+              code: plan.code,
+              name: plan.name,
+              description: plan.description,
+              audienceRole: plan.audienceRole,
+              priceCents: plan.priceCents,
+              billingInterval: plan.billingInterval,
+              features: JSON.stringify(plan.features),
+              limits: JSON.stringify(plan.limits),
+              isActive: true,
+              sortOrder: plan.sortOrder,
+            },
+          })
+        )
+      );
+    }
+
+    plansSeeded = true;
+  })().catch((error) => {
+    planSeedPromise = null;
+    throw error;
+  });
+
+  return planSeedPromise;
 }
 
 export async function listPlans() {
@@ -81,6 +100,18 @@ export async function listPlans() {
     orderBy: { sortOrder: "asc" },
   });
   return plans.map(serializePlan);
+}
+
+export async function findAvailablePlan(role: string, planCode: string) {
+  await seedDefaultPlans();
+  const normalizedRole = normalizeRole(role);
+  return prisma.plan.findFirst({
+    where: {
+      code: planCode.toUpperCase(),
+      isActive: true,
+      OR: [{ audienceRole: normalizedRole }, { audienceRole: "ALL" }],
+    },
+  });
 }
 
 export async function createInitialSubscription(userId: string, role: string, requestedPlanCode?: string) {
@@ -140,7 +171,12 @@ export async function ensureSubscriptionForUser(userId: string, role: string) {
   return createInitialSubscription(userId, role);
 }
 
-export async function getSubscriptionContext(userId: string, role: string): Promise<SubscriptionContext> {
+export async function getSubscriptionContext(
+  userId: string,
+  role: string,
+  options: { includeUsage?: boolean } = {}
+): Promise<SubscriptionContext> {
+  const includeUsage = options.includeUsage ?? true;
   const normalizedRole = normalizeRole(role);
   if (normalizedRole === "ADMIN") {
     const firm = DEFAULT_PLANS.find((p) => p.code === "FIRM")!;
@@ -166,19 +202,19 @@ export async function getSubscriptionContext(userId: string, role: string): Prom
 
   const subscription = await ensureSubscriptionForUser(userId, normalizedRole);
   const plan = serializePlan(subscription.plan);
-  const usageRows = await prisma.usageEvent.groupBy({
-    by: ["feature"],
-    where: {
-      userId,
-      createdAt: { gte: subscription.currentPeriodStart, lte: subscription.currentPeriodEnd },
-    },
-    _sum: { quantity: true },
-  });
-
-  const usage = usageRows.reduce<SubscriptionContext["usage"]>((acc, row) => {
-    acc[row.feature as SubscriptionFeature] = row._sum.quantity ?? 0;
-    return acc;
-  }, {});
+  const usage = includeUsage
+    ? (await prisma.usageEvent.groupBy({
+        by: ["feature"],
+        where: {
+          userId,
+          createdAt: { gte: subscription.currentPeriodStart, lte: subscription.currentPeriodEnd },
+        },
+        _sum: { quantity: true },
+      })).reduce<SubscriptionContext["usage"]>((acc, row) => {
+        acc[row.feature as SubscriptionFeature] = row._sum.quantity ?? 0;
+        return acc;
+      }, {})
+    : {};
 
   return {
     isAdmin: false,
@@ -255,16 +291,15 @@ export function subscriptionError(error: unknown, feature: SubscriptionFeature) 
   return { status, body: { error: copy, code: message, feature } };
 }
 
-export async function switchPlan(userId: string, role: string, planCode: string, actorId?: string) {
-  await seedDefaultPlans();
+export async function switchPlan(
+  userId: string,
+  role: string,
+  planCode: string,
+  actorId?: string,
+  options?: { provider?: string; paymentLast4?: string; plan?: Awaited<ReturnType<typeof findAvailablePlan>> }
+) {
   const normalizedRole = normalizeRole(role);
-  const plan = await prisma.plan.findFirst({
-    where: {
-      code: planCode.toUpperCase(),
-      isActive: true,
-      OR: [{ audienceRole: normalizedRole }, { audienceRole: "ALL" }],
-    },
-  });
+  const plan = options?.plan ?? await findAvailablePlan(normalizedRole, planCode);
   if (!plan) throw new Error("Plan not available for this role");
 
   await prisma.subscription.updateMany({
@@ -280,17 +315,22 @@ export async function switchPlan(userId: string, role: string, planCode: string,
       roleScope: plan.audienceRole === "ALL" ? normalizedRole : plan.audienceRole,
       currentPeriodStart: new Date(),
       currentPeriodEnd: addDays(30),
-      provider: "MANUAL",
+      provider: options?.provider ?? "MANUAL",
     },
     include: { plan: true },
   });
 
-  await auditLog({
+  void auditLog({
     userId: actorId ?? userId,
     action: "SUBSCRIPTION_CHANGE",
     resourceType: "Subscription",
     resourceId: sub.id,
-    metadata: { userId, planCode: plan.code, provider: "MANUAL" },
+    metadata: {
+      userId,
+      planCode: plan.code,
+      provider: options?.provider ?? "MANUAL",
+      paymentLast4: options?.paymentLast4,
+    },
   });
 
   return sub;

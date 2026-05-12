@@ -61,5 +61,5 @@ The app uses Prisma with PostgreSQL. The Supabase `DATABASE_URL` must be present
 For Supabase pooler connections, keep Prisma constrained to one DB connection per runtime:
 
 ```env
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:6543/postgres?sslmode=require&pgbouncer=true&connection_limit=1&pool_timeout=20"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:6543/postgres?sslmode=require&pgbouncer=true&connection_limit=3&pool_timeout=20"
 ```

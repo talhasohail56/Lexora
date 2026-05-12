@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
   if (!session) redirect("/login");
-  const subscription = await getSubscriptionContext(session.userId, session.role);
+  const subscription = await getSubscriptionContext(session.userId, session.role, { includeUsage: false });
 
   return (
     <div className="min-h-screen flex bg-[linear-gradient(135deg,hsl(var(--background)),hsl(var(--background))_62%,hsl(var(--primary)/0.05))]">

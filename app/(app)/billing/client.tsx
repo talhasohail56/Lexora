@@ -8,6 +8,16 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   FEATURE_LABELS,
   type AppRole,
@@ -19,6 +29,12 @@ import {
 } from "@/lib/subscription-config";
 
 type PlanFromApi = DefaultPlan & { id?: string; isActive?: boolean };
+type PaymentForm = {
+  cardholderName: string;
+  cardNumber: string;
+  expiry: string;
+  cvc: string;
+};
 
 const usageFeatures: SubscriptionFeature[] = [
   "documents",
@@ -41,18 +57,32 @@ export function BillingClient({
 }) {
   const router = useRouter();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [currentPlanCode, setCurrentPlanCode] = useState(subscription.plan.code);
+  const [selectedPlan, setSelectedPlan] = useState<PlanFromApi | null>(null);
+  const [payment, setPayment] = useState<PaymentForm>({
+    cardholderName: "",
+    cardNumber: "",
+    expiry: "",
+    cvc: "",
+  });
 
-  async function switchPlan(planCode: string) {
+  async function switchPlan(planCode: string, paymentDetails?: PaymentForm) {
     setLoadingPlan(planCode);
     try {
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planCode }),
+        body: JSON.stringify({ planCode, payment: paymentDetails }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not update plan");
-      toast.success(`Plan switched to ${data.planName}`);
+      setCurrentPlanCode(planCode);
+      setSelectedPlan(null);
+      toast.success(
+        data.paymentLast4
+          ? `Plan switched to ${data.planName}. Card ending ${data.paymentLast4} authorized.`
+          : `Plan switched to ${data.planName}`
+      );
       router.refresh();
     } catch (e: any) {
       toast.error(e.message);
@@ -61,10 +91,40 @@ export function BillingClient({
     }
   }
 
+  function startCheckout(plan: PlanFromApi) {
+    if (plan.priceCents > 0) {
+      setPayment({
+        cardholderName: "",
+        cardNumber: "",
+        expiry: "",
+        cvc: "",
+      });
+      setSelectedPlan(plan);
+      return;
+    }
+    switchPlan(plan.code);
+  }
+
+  function submitPayment(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedPlan) return;
+    switchPlan(selectedPlan.code, payment);
+  }
+
+  function useDemoCard() {
+    setPayment({
+      cardholderName: "Muhammad Talha",
+      cardNumber: "4242 4242 4242 4242",
+      expiry: "12/30",
+      cvc: "123",
+    });
+  }
+
   const eligiblePlans = plans.filter((plan) => {
     if (role === "ADMIN") return true;
     return plan.audienceRole === "ALL" || plan.audienceRole === role;
   });
+  const displayedPlan = eligiblePlans.find((plan) => plan.code === currentPlanCode) ?? subscription.plan;
 
   return (
     <div className="space-y-8">
@@ -78,7 +138,7 @@ export function BillingClient({
         </div>
         <div className="rounded-lg border bg-card p-4 text-right">
           <p className="text-xs text-muted-foreground">Current plan</p>
-          <p className="mt-1 text-xl font-semibold">{subscription.plan.name}</p>
+          <p className="mt-1 text-xl font-semibold">{displayedPlan.name}</p>
           <p className="text-sm text-muted-foreground">{subscription.status}</p>
         </div>
       </div>
@@ -99,8 +159,8 @@ export function BillingClient({
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Metric label="Plan" value={subscription.plan.name} />
-            <Metric label="Price" value={formatPlanPrice(subscription.plan.priceCents)} />
+            <Metric label="Plan" value={displayedPlan.name} />
+            <Metric label="Price" value={formatPlanPrice(displayedPlan.priceCents)} />
             <Metric label="Role" value={subscription.role} />
             <Metric label="Status" value={subscription.status} />
           </div>
@@ -157,7 +217,7 @@ export function BillingClient({
 
       <div className="grid gap-4 lg:grid-cols-4">
         {eligiblePlans.map((plan) => {
-          const active = plan.code === subscription.plan.code;
+          const active = plan.code === currentPlanCode;
           return (
             <motion.div
               key={plan.code}
@@ -186,14 +246,110 @@ export function BillingClient({
                 className="mt-auto"
                 variant={active ? "outline" : "gradient"}
                 disabled={active || !!loadingPlan}
-                onClick={() => switchPlan(plan.code)}
+                onClick={() => startCheckout(plan)}
               >
-                {loadingPlan === plan.code ? <Loader2 className="h-4 w-4 animate-spin" /> : active ? "Current plan" : "Switch plan"}
+                {loadingPlan === plan.code ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : active ? (
+                  "Current plan"
+                ) : plan.priceCents > 0 ? (
+                  "Checkout"
+                ) : (
+                  "Switch plan"
+                )}
               </Button>
             </motion.div>
           );
         })}
       </div>
+
+      <Dialog open={!!selectedPlan} onOpenChange={(open) => !open && setSelectedPlan(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Checkout for {selectedPlan?.name}</DialogTitle>
+            <DialogDescription>
+              Enter card details to authorize this subscription. This demo does not store card data or charge a real card.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={submitPayment} className="space-y-4">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">{selectedPlan?.name}</p>
+                  <p className="text-xs text-muted-foreground">Monthly subscription</p>
+                </div>
+                <p className="text-xl font-semibold">
+                  {selectedPlan ? formatPlanPrice(selectedPlan.priceCents) : ""}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="cardholderName">Cardholder name</Label>
+              <Input
+                id="cardholderName"
+                value={payment.cardholderName}
+                onChange={(e) => setPayment({ ...payment, cardholderName: e.target.value })}
+                placeholder="Name on card"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="cardNumber">Card number</Label>
+              <Input
+                id="cardNumber"
+                value={payment.cardNumber}
+                onChange={(e) => setPayment({ ...payment, cardNumber: e.target.value })}
+                placeholder="4242 4242 4242 4242"
+                inputMode="numeric"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="expiry">Expiry</Label>
+                <Input
+                  id="expiry"
+                  value={payment.expiry}
+                  onChange={(e) => setPayment({ ...payment, expiry: e.target.value })}
+                  placeholder="MM/YY"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="cvc">CVC</Label>
+                <Input
+                  id="cvc"
+                  value={payment.cvc}
+                  onChange={(e) => setPayment({ ...payment, cvc: e.target.value })}
+                  placeholder="123"
+                  inputMode="numeric"
+                  required
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2 sm:space-x-0">
+              <Button type="button" variant="outline" onClick={useDemoCard}>
+                Use demo card
+              </Button>
+              <Button type="submit" disabled={loadingPlan === selectedPlan?.code}>
+                {loadingPlan === selectedPlan?.code ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4" />
+                    Confirm checkout
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
