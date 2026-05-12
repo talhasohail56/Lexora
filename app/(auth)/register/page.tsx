@@ -65,6 +65,7 @@ export default function RegisterPage() {
   const googleHref = `/api/auth/google?role=${form.role}&plan=${encodeURIComponent(form.planCode)}`;
   const availablePlans = PLAN_CHOICES[form.role];
   const selectedPlan = availablePlans.find((plan) => plan.code === form.planCode) ?? availablePlans[0];
+  const selectedPlanRequiresCheckout = !["STARTER", "LAWYER_TRIAL"].includes(selectedPlan.code);
   const inputClass = "border-white/[0.12] bg-black/[0.22] pl-9 text-white placeholder:text-white/[0.28] focus-visible:ring-teal-200/40";
   const labelClass = "text-white/[0.72]";
 
@@ -284,7 +285,9 @@ export default function RegisterPage() {
               Selected plan
             </div>
             <p className="mt-1 text-sm text-white/[0.50]">
-              {selectedPlan.name}. You can change this from Billing after signup.
+              {selectedPlanRequiresCheckout
+                ? `${selectedPlan.name} requires checkout after signup. Your account starts on ${form.role === "LAWYER" ? "Lawyer Trial" : "User Starter"}.`
+                : `${selectedPlan.name}. You can change this from Billing after signup.`}
             </p>
           </div>
           <Button type="submit" className="h-11 w-full bg-white text-[#080806] hover:bg-white/90" disabled={loading}>

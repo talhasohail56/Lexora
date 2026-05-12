@@ -114,7 +114,7 @@ export async function createInitialSubscription(userId: string, role: string, re
   const normalizedRole = normalizeRole(role);
   const fallbackCode = normalizedRole === "LAWYER" ? "LAWYER_TRIAL" : "STARTER";
   const requested = requestedPlanCode?.toUpperCase();
-  const plan =
+  const requestedPlan =
     (requested
       ? await prisma.plan.findFirst({
           where: {
@@ -123,7 +123,9 @@ export async function createInitialSubscription(userId: string, role: string, re
             OR: [{ audienceRole: normalizedRole }, { audienceRole: "ALL" }],
           },
         })
-      : null) ??
+      : null);
+  const plan =
+    (requestedPlan && requestedPlan.priceCents === 0 ? requestedPlan : null) ??
     (await prisma.plan.findUnique({ where: { code: fallbackCode } }));
   if (!plan) throw new Error("Subscription plan not configured");
 
