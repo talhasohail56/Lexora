@@ -5,8 +5,6 @@
 
 import { prisma } from "@/lib/db";
 import { chatComplete } from "@/lib/openai";
-import { embed } from "@/lib/openai";
-import { cosineSimilarity, safeJson } from "@/lib/utils";
 
 export type CompareResult = {
   added: { clauseType: string; text: string }[];
@@ -37,7 +35,58 @@ function sourceClauses(doc: {
   }));
 }
 
+function normalizeText(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/["'`]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tokenize(text: string) {
+  return normalizeText(text)
+    .split(" ")
+    .filter((token) => token.length > 2);
+}
+
+function shingles(tokens: string[], size: number) {
+  const out = new Set<string>();
+  for (let i = 0; i <= tokens.length - size; i += 1) {
+    out.add(tokens.slice(i, i + size).join(" "));
+  }
+  return out;
+}
+
+function jaccard(a: Set<string>, b: Set<string>) {
+  if (!a.size && !b.size) return 1;
+  let intersection = 0;
+  for (const value of a) {
+    if (b.has(value)) intersection += 1;
+  }
+  return intersection / (a.size + b.size - intersection || 1);
+}
+
+export function calculateDocumentSimilarity(textA: string, textB: string) {
+  const normalizedA = normalizeText(textA);
+  const normalizedB = normalizeText(textB);
+  if (!normalizedA || !normalizedB) return 0;
+  if (normalizedA === normalizedB) return 1;
+
+  const tokensA = tokenize(normalizedA);
+  const tokensB = tokenize(normalizedB);
+  const wordOverlap = jaccard(new Set(tokensA), new Set(tokensB));
+  const phraseOverlap = jaccard(shingles(tokensA, 5), shingles(tokensB, 5));
+  const lengthSimilarity = Math.min(tokensA.length, tokensB.length) / Math.max(tokensA.length, tokensB.length, 1);
+
+  // Phrase overlap carries most of the score because it catches actual textual
+  // similarity. Word overlap alone makes unrelated legal documents look too close.
+  return Math.max(0, Math.min(0.99, phraseOverlap * 0.7 + wordOverlap * 0.25 + lengthSimilarity * 0.05));
+}
+
 export async function compareTwo(docAId: string, docBId: string): Promise<CompareResult> {
+  if (docAId === docBId) throw new Error("Choose two different documents");
+
   const [a, b] = await Promise.all([
     prisma.document.findUnique({ where: { id: docAId }, include: { clauses: true } }),
     prisma.document.findUnique({ where: { id: docBId }, include: { clauses: true } }),
@@ -61,21 +110,9 @@ ${JSON.stringify(bClauses, null, 2)}`;
     parsed = { added: [], removed: [], modified: [], unchanged: 0, similarityScore: 0.5 };
   }
 
-  // Sanity: recompute similarity from clause embeddings if we have them.
-  try {
-    const texts = [...aClauses.map((c) => c.text), ...bClauses.map((c) => c.text)];
-    if (texts.length > 1) {
-      const vecs = await embed(texts);
-      const aVecs = vecs.slice(0, aClauses.length);
-      const bVecs = vecs.slice(aClauses.length);
-      const sims: number[] = [];
-      for (const av of aVecs) {
-        const best = bVecs.reduce((acc, bv) => Math.max(acc, cosineSimilarity(av, bv)), 0);
-        sims.push(best);
-      }
-      if (sims.length) parsed.similarityScore = sims.reduce((s, v) => s + v, 0) / sims.length;
-    }
-  } catch { /* ignore */ }
+  const textA = aClauses.map((clause) => clause.text).join("\n\n");
+  const textB = bClauses.map((clause) => clause.text).join("\n\n");
+  parsed.similarityScore = calculateDocumentSimilarity(textA, textB);
 
   return parsed;
 }

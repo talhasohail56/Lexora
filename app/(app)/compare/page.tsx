@@ -23,6 +23,7 @@ export default function ComparePage() {
   async function run() {
     const ids = picks.filter(Boolean);
     if (ids.length < 2) return toast.error("Pick at least 2 documents");
+    if (new Set(ids).size !== ids.length) return toast.error("Choose different documents for comparison");
     setLoading(true);
     setResult(null);
     try {
@@ -39,7 +40,22 @@ export default function ComparePage() {
   }
 
   function setPick(i: number, v: string) {
-    setPicks((p) => { const next = [...p]; next[i] = v; return next; });
+    setPicks((p) => {
+      if (p.some((picked, index) => index !== i && picked === v)) {
+        toast.error("That document is already selected");
+        return p;
+      }
+      const next = [...p];
+      next[i] = v;
+      return next;
+    });
+  }
+
+  function similarityLabel(score: number) {
+    const pct = Math.max(0, Math.min(100, (score || 0) * 100));
+    if (pct > 0 && pct < 1) return "<1%";
+    if (pct >= 99 && pct < 100) return `${pct.toFixed(1)}%`;
+    return `${Math.round(pct)}%`;
   }
 
   return (
@@ -60,7 +76,15 @@ export default function ComparePage() {
                 <Select value={p} onValueChange={(v) => setPick(i, v)}>
                   <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                   <SelectContent>
-                    {docs.map((d) => <SelectItem key={d.id} value={d.id}>{d.originalName}</SelectItem>)}
+                    {docs.map((d) => (
+                      <SelectItem
+                        key={d.id}
+                        value={d.id}
+                        disabled={picks.some((picked, index) => index !== i && picked === d.id)}
+                      >
+                        {d.originalName}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -89,13 +113,13 @@ export default function ComparePage() {
         {result && (
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             {Array.isArray(result.added) ? (
-              <CompareResultView result={result} />
+              <CompareResultView result={result} similarityLabel={similarityLabel} />
             ) : (
               <>
                 <h3 className="font-semibold">3-way comparison results</h3>
-                <CompareResultView result={result.ab} title="A vs B" />
-                <CompareResultView result={result.ac} title="A vs C" />
-                <CompareResultView result={result.bc} title="B vs C" />
+                <CompareResultView result={result.ab} title="A vs B" similarityLabel={similarityLabel} />
+                <CompareResultView result={result.ac} title="A vs C" similarityLabel={similarityLabel} />
+                <CompareResultView result={result.bc} title="B vs C" similarityLabel={similarityLabel} />
               </>
             )}
           </motion.div>
@@ -105,7 +129,15 @@ export default function ComparePage() {
   );
 }
 
-function CompareResultView({ result, title }: { result: any; title?: string }) {
+function CompareResultView({
+  result,
+  title,
+  similarityLabel = (score: number) => `${Math.round((score || 0) * 100)}%`,
+}: {
+  result: any;
+  title?: string;
+  similarityLabel?: (score: number) => string;
+}) {
   return (
     <GlowCard className="p-5">
       {title && <h3 className="font-semibold mb-3">{title}</h3>}
@@ -113,7 +145,7 @@ function CompareResultView({ result, title }: { result: any; title?: string }) {
         <Stat label="Added" value={result.added.length} color="from-emerald-500 to-teal-500" />
         <Stat label="Removed" value={result.removed.length} color="from-red-500 to-orange-500" />
         <Stat label="Modified" value={result.modified.length} color="from-amber-500 to-orange-500" />
-        <Stat label="Similarity" value={`${Math.round((result.similarityScore || 0) * 100)}%`} color="from-lex-500 to-amber-500" />
+        <Stat label="Similarity" value={similarityLabel(result.similarityScore)} color="from-lex-500 to-amber-500" />
       </div>
 
       <Section heading="Added" color="text-emerald-500">
