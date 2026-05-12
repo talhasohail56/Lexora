@@ -12,10 +12,16 @@ import { ArrowRight, Database, FileSearch, Loader2, Lock, Mail, Scale } from "lu
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [nextUrl, setNextUrl] = useState("/dashboard");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const error = new URLSearchParams(window.location.search).get("error");
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    const next = params.get("next");
+    const invitedEmail = params.get("email");
+    if (invitedEmail) setEmail(invitedEmail);
+    if (next?.startsWith("/")) setNextUrl(next);
     if (!error) return;
     toast.error(error === "google_not_configured" ? "Google login needs the OAuth client ID." : "Google sign-in failed.");
   }, []);
@@ -32,7 +38,7 @@ export default function LoginPage() {
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Login failed");
       toast.success("Welcome back!");
-      window.location.assign("/dashboard");
+      window.location.assign(nextUrl);
     } catch (e: any) {
       toast.error(e.message);
       setLoading(false);
@@ -115,7 +121,7 @@ export default function LoginPage() {
           </div>
 
           <Button asChild variant="outline" className="mb-5 h-11 w-full border-white/[0.13] bg-black/[0.22] text-white hover:bg-white/[0.08] hover:text-white">
-            <a href="/api/auth/google">
+            <a href={`/api/auth/google?next=${encodeURIComponent(nextUrl)}`}>
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-[#080806]">G</span>
               Continue with Google
             </a>

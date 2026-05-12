@@ -18,7 +18,15 @@ export async function POST(req: NextRequest) {
     const out = subscriptionError(e, "annotations");
     return NextResponse.json(out.body, { status: out.status });
   }
-  const doc = await prisma.document.findUnique({ where: { id: documentId } });
+  const doc = await prisma.document.findFirst({
+    where: {
+      id: documentId,
+      OR: [
+        { userId: s.userId },
+        { shares: { some: { sharedWithId: s.userId, permission: "ANNOTATE" } } },
+      ],
+    },
+  });
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
   const a = await prisma.annotation.create({
     data: { documentId, clauseId: clauseId || null, authorId: s.userId, content },

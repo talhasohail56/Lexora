@@ -6,11 +6,13 @@ import { loginWithGoogle } from "@/lib/services/auth-service";
 const STATE_COOKIE = "lexora_google_state";
 const ROLE_COOKIE = "lexora_google_role";
 const PLAN_COOKIE = "lexora_google_plan";
+const NEXT_COOKIE = "lexora_google_next";
 
 function clearOAuthCookies(response: NextResponse) {
   response.cookies.set(STATE_COOKIE, "", { path: "/", maxAge: 0 });
   response.cookies.set(ROLE_COOKIE, "", { path: "/", maxAge: 0 });
   response.cookies.set(PLAN_COOKIE, "", { path: "/", maxAge: 0 });
+  response.cookies.set(NEXT_COOKIE, "", { path: "/", maxAge: 0 });
 }
 
 function redirectWithError(req: NextRequest, error: string) {
@@ -34,6 +36,7 @@ export async function GET(req: NextRequest) {
     const profile = await exchangeGoogleCode(code, req.nextUrl.origin);
     const role = req.cookies.get(ROLE_COOKIE)?.value === "LAWYER" ? "LAWYER" : "USER";
     const planCode = req.cookies.get(PLAN_COOKIE)?.value || undefined;
+    const next = req.cookies.get(NEXT_COOKIE)?.value || "/dashboard";
     const { token } = await loginWithGoogle(
       profile,
       { role, planCode },
@@ -41,7 +44,7 @@ export async function GET(req: NextRequest) {
       req.headers.get("user-agent") || undefined
     );
 
-    const response = NextResponse.redirect(new URL("/dashboard", req.url));
+    const response = NextResponse.redirect(new URL(next.startsWith("/") ? next : "/dashboard", req.url));
     response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
     clearOAuthCookies(response);
     return response;

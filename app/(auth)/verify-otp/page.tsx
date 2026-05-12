@@ -11,6 +11,8 @@ import { Loader2, Mail } from "lucide-react";
 function VerifyOtpInner() {
   const params = useSearchParams();
   const email = params.get("email") || "";
+  const invite = params.get("invite") || "";
+  const next = params.get("next") || "";
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -41,7 +43,11 @@ function VerifyOtpInner() {
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Verification failed");
       toast.success("Email verified. Please sign in.");
-      window.location.assign("/login");
+      const loginUrl = new URL("/login", window.location.origin);
+      loginUrl.searchParams.set("email", email);
+      if (next) loginUrl.searchParams.set("next", next);
+      else if (invite) loginUrl.searchParams.set("next", `/invite/${invite}`);
+      window.location.assign(loginUrl.toString());
     } catch (e: any) {
       toast.error(e.message);
       setLoading(false);

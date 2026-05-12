@@ -15,9 +15,13 @@ export default async function DocumentsPage() {
   if (!session) redirect("/login");
 
   const docs = await prisma.document.findMany({
-    where: { userId: session.userId },
+    where: { OR: [{ userId: session.userId }, { shares: { some: { sharedWithId: session.userId } } }] },
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { clauses: true, risks: true, embeddings: true } } },
+    include: {
+      user: { select: { name: true, email: true } },
+      shares: { where: { sharedWithId: session.userId }, select: { permission: true } },
+      _count: { select: { clauses: true, risks: true, embeddings: true } },
+    },
   });
 
   return (
@@ -60,6 +64,11 @@ export default async function DocumentsPage() {
                   <div className="font-medium text-sm truncate" title={d.originalName}>
                     {d.originalName}
                   </div>
+                  {d.userId !== session.userId && (
+                    <div className="mt-1 text-[11px] text-lex-600">
+                      Shared by {d.user.name} · {d.shares[0]?.permission === "ANNOTATE" ? "Can annotate" : "View only"}
+                    </div>
+                  )}
                   <div className="text-xs text-muted-foreground mt-0.5">
                     {d.documentType || "GENERAL"} · {formatBytes(d.fileSize)} · {formatRelative(d.createdAt)}
                   </div>

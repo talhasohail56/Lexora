@@ -188,3 +188,45 @@ export async function sendDraftDocxEmail(input: {
     ],
   });
 }
+
+export async function sendFirmInvitationEmail(input: {
+  to: string;
+  firmName: string;
+  inviterName: string;
+  token: string;
+  appUrl?: string;
+}) {
+  const safeFirm = escapeHtml(input.firmName);
+  const safeInviter = escapeHtml(input.inviterName);
+  const appUrl = (input.appUrl || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  const inviteUrl = `${appUrl}/invite/${encodeURIComponent(input.token)}`;
+
+  return sendEmail({
+    to: input.to,
+    subject: `${input.inviterName} invited you to ${input.firmName} on Lexora`,
+    text: `${input.inviterName} invited you to join ${input.firmName} on Lexora. Accept the invitation: ${inviteUrl}`,
+    html: `
+      <div style="margin:0;background:#f6f8f7;padding:40px 20px;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#172321">
+        <div style="max-width:620px;margin:0 auto">
+          <div style="border:1px solid #dce7e2;border-radius:24px;background:#fff;box-shadow:0 24px 80px rgba(23,35,33,.10);overflow:hidden">
+            <div style="height:5px;background:linear-gradient(90deg,#2f7d72,#e0a52c)"></div>
+            <div style="padding:34px">
+              <p style="margin:0 0 12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#2f7d72">Firm workspace invitation</p>
+              <h1 style="margin:0 0 14px;font-size:28px;line-height:1.2;color:#111817">Join ${safeFirm} on Lexora</h1>
+              <p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#60706d">${safeInviter} invited you to collaborate inside the firm's legal workspace.</p>
+              <div style="border:1px solid #d9e5e0;border-radius:16px;background:#f7faf9;padding:18px">
+                <div style="font-size:13px;color:#60706d">Workspace</div>
+                <div style="margin-top:4px;font-size:20px;font-weight:700;color:#111817">${safeFirm}</div>
+              </div>
+              <a href="${inviteUrl}" style="display:block;margin-top:24px;border-radius:14px;background:#111817;color:#fff;text-decoration:none;text-align:center;padding:15px 20px;font-weight:700">Accept invitation</a>
+              <p style="margin:22px 0 0;font-size:13px;line-height:1.7;color:#60706d">Use the same email address that received this invitation. If you do not have a Lexora account yet, you can create one from the invitation page.</p>
+            </div>
+            <div style="border-top:1px solid #edf2f0;background:#fbfcfc;padding:18px 34px;font-size:12px;line-height:1.6;color:#7a8784">
+              This invite only grants access to documents shared with you by the firm.
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+  });
+}

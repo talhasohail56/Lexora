@@ -43,6 +43,33 @@ function serializePlan(plan: any) {
   };
 }
 
+async function getActiveFirmSubscriptionForMember(userId: string) {
+  const membership = await prisma.firmMember.findFirst({
+    where: { userId, status: "ACTIVE" },
+    include: {
+      firm: {
+        include: {
+          owner: {
+            include: {
+              subscriptions: {
+                where: { status: { in: ACTIVE_STATUSES } },
+                include: { plan: true },
+                orderBy: { currentPeriodEnd: "desc" },
+                take: 1,
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const subscription = membership?.firm.owner.subscriptions[0];
+  if (!subscription || subscription.plan.code !== "FIRM") return null;
+  if (subscription.currentPeriodEnd.getTime() < Date.now()) return null;
+  return subscription;
+}
+
 export async function seedDefaultPlans() {
   if (plansSeeded) return;
   if (planSeedPromise) return planSeedPromise;
@@ -172,6 +199,7 @@ export async function getSubscriptionContext(
   role: string,
   options: { includeUsage?: boolean } = {}
 ): Promise<SubscriptionContext> {
+  await seedDefaultPlans();
   const includeUsage = options.includeUsage ?? true;
   const normalizedRole = normalizeRole(role);
   if (normalizedRole === "ADMIN") {
@@ -192,6 +220,21 @@ export async function getSubscriptionContext(
         features: firm.features,
         limits: firm.limits,
       },
+      usage: {},
+    };
+  }
+
+  const firmSubscription = await getActiveFirmSubscriptionForMember(userId);
+  if (firmSubscription) {
+    const plan = serializePlan(firmSubscription.plan);
+    return {
+      isAdmin: false,
+      role: normalizedRole,
+      status: firmSubscription.status as SubscriptionContext["status"],
+      currentPeriodEnd: firmSubscription.currentPeriodEnd,
+      trialEndsAt: firmSubscription.trialEndsAt,
+      cancelAtPeriodEnd: firmSubscription.cancelAtPeriodEnd,
+      plan,
       usage: {},
     };
   }

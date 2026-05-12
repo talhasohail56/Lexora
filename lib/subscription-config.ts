@@ -19,6 +19,7 @@ export type SubscriptionFeature =
   | "forecast"
   | "voiceBriefs"
   | "notifications"
+  | "team"
   | "settings"
   | "billing"
   | "admin";
@@ -82,6 +83,7 @@ export const FEATURE_LABELS: Record<SubscriptionFeature, string> = {
   forecast: "Court forecast",
   voiceBriefs: "Voice brief",
   notifications: "Notifications",
+  team: "Team workspace",
   settings: "Settings",
   billing: "Billing",
   admin: "Admin",
@@ -148,6 +150,7 @@ export const DEFAULT_PLANS: DefaultPlan[] = [
       "forecast",
       "voiceBriefs",
       "notifications",
+      "team",
       "settings",
       "billing",
     ],
@@ -301,6 +304,7 @@ export const DEFAULT_PLANS: DefaultPlan[] = [
       negotiator: "unlimited",
       forecast: "unlimited",
       voiceBriefs: "unlimited",
+      team: true,
       admin: true,
     },
   },
@@ -311,6 +315,7 @@ export const PATH_FEATURES: { prefix: string; feature: SubscriptionFeature }[] =
   { prefix: "/billing", feature: "billing" },
   { prefix: "/settings", feature: "settings" },
   { prefix: "/notifications", feature: "notifications" },
+  { prefix: "/team", feature: "team" },
   { prefix: "/documents/upload", feature: "documentUpload" },
   { prefix: "/documents", feature: "documents" },
   { prefix: "/chat", feature: "chatMessages" },

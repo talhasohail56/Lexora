@@ -61,8 +61,10 @@ export default function RegisterPage() {
     role: "USER" as "USER" | "LAWYER",
     planCode: "STARTER",
   });
+  const [inviteToken, setInviteToken] = useState("");
+  const [nextUrl, setNextUrl] = useState("/dashboard");
   const [loading, setLoading] = useState(false);
-  const googleHref = `/api/auth/google?role=${form.role}&plan=${encodeURIComponent(form.planCode)}`;
+  const googleHref = `/api/auth/google?role=${form.role}&plan=${encodeURIComponent(form.planCode)}&next=${encodeURIComponent(nextUrl)}`;
   const availablePlans = PLAN_CHOICES[form.role];
   const selectedPlan = availablePlans.find((plan) => plan.code === form.planCode) ?? availablePlans[0];
   const selectedPlanRequiresCheckout = !["STARTER", "LAWYER_TRIAL"].includes(selectedPlan.code);
@@ -70,7 +72,14 @@ export default function RegisterPage() {
   const labelClass = "text-white/[0.72]";
 
   useEffect(() => {
-    const plan = new URLSearchParams(window.location.search).get("plan")?.toUpperCase();
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get("plan")?.toUpperCase();
+    const email = params.get("email");
+    const invite = params.get("invite");
+    const next = params.get("next");
+    if (email) setForm((f) => ({ ...f, email }));
+    if (invite) setInviteToken(invite);
+    if (next?.startsWith("/")) setNextUrl(next);
     if (!plan) return;
     setForm((f) => ({
       ...f,
@@ -109,7 +118,11 @@ export default function RegisterPage() {
         toast.error(`Account created, but email failed: ${data.emailError || "unknown Resend error"}`);
       }
       if (data.devOtp) toast.message(`Local fallback OTP: ${data.devOtp}`);
-      window.location.assign(`/verify-otp?email=${encodeURIComponent(form.email)}`);
+      const verifyUrl = new URL("/verify-otp", window.location.origin);
+      verifyUrl.searchParams.set("email", form.email);
+      if (inviteToken) verifyUrl.searchParams.set("invite", inviteToken);
+      if (nextUrl) verifyUrl.searchParams.set("next", nextUrl);
+      window.location.assign(verifyUrl.toString());
     } catch (e: any) {
       toast.error(e.message);
       setLoading(false);

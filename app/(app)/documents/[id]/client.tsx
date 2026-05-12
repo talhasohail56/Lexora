@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
   FileText, AlertTriangle, Shield, Clock, MessageSquare, Sparkles,
-  Mic, RefreshCw, BookOpen, Volume2, ArrowLeft, Activity, GitCompare, Download
+  RefreshCw, BookOpen, Volume2, ArrowLeft, Download, Share2, Trash2, Users
 } from "lucide-react";
 import { PageTransition } from "@/components/animated/page-transition";
 import { Stagger, StaggerItem } from "@/components/animated/scroll-reveal";
@@ -19,10 +19,26 @@ import { severityColor, formatBytes, formatRelative } from "@/lib/utils";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { AnimatedCounter } from "@/components/animated/animated-counter";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export function DocumentDetailClient({ doc, sessionUserId, sessionRole }: { doc: any; sessionUserId: string; sessionRole: string }) {
+export function DocumentDetailClient({
+  doc,
+  sessionUserId,
+  sessionRole,
+  teamMembers = [],
+  canShare = false,
+  canAnnotate = false,
+}: {
+  doc: any;
+  sessionUserId: string;
+  sessionRole: string;
+  teamMembers?: any[];
+  canShare?: boolean;
+  canAnnotate?: boolean;
+}) {
   const [annotationText, setAnnotationText] = useState("");
   const [running, setRunning] = useState(false);
+  const [shares, setShares] = useState(doc.shares || []);
 
   async function reanalyze() {
     setRunning(true);
@@ -149,6 +165,15 @@ export function DocumentDetailClient({ doc, sessionUserId, sessionRole }: { doc:
           </div>
         </Stagger>
 
+        {canShare && (
+          <DocumentSharePanel
+            docId={doc.id}
+            shares={shares}
+            setShares={setShares}
+            teamMembers={teamMembers}
+          />
+        )}
+
         {/* Tabs */}
         <Tabs defaultValue="summary" className="w-full">
           <TabsList className="grid grid-cols-7 w-full max-w-3xl">
@@ -227,7 +252,7 @@ export function DocumentDetailClient({ doc, sessionUserId, sessionRole }: { doc:
               <h3 className="font-semibold mb-3 flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-lex-500" /> Annotations
               </h3>
-              {(sessionRole === "LAWYER" || sessionRole === "ADMIN") && (
+              {canAnnotate && (
                 <div className="space-y-2 mb-4">
                   <Textarea
                     placeholder="Add a note..."
@@ -267,6 +292,130 @@ export function DocumentDetailClient({ doc, sessionUserId, sessionRole }: { doc:
         </Tabs>
       </div>
     </PageTransition>
+  );
+}
+
+function DocumentSharePanel({
+  docId,
+  shares,
+  setShares,
+  teamMembers,
+}: {
+  docId: string;
+  shares: any[];
+  setShares: (shares: any[]) => void;
+  teamMembers: any[];
+}) {
+  const [target, setTarget] = useState("TEAM");
+  const [permission, setPermission] = useState("VIEW_ONLY");
+  const [loading, setLoading] = useState(false);
+
+  async function share() {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/documents/${docId}/share`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scope: target === "TEAM" ? "TEAM" : "MEMBER",
+          memberId: target === "TEAM" ? undefined : target,
+          permission,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not share document");
+      toast.success(target === "TEAM" ? "Shared with firm members" : "Document shared");
+      setTimeout(() => location.reload(), 500);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function revoke(shareId: string) {
+    try {
+      const response = await fetch(`/api/documents/${docId}/share`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shareId }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not revoke access");
+      setShares(shares.filter((share) => share.id !== shareId));
+      toast.success("Access revoked");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  }
+
+  return (
+    <GlowCard className="p-5">
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h3 className="flex items-center gap-2 font-semibold">
+            <Share2 className="h-4 w-4 text-lex-500" />
+            Team sharing
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This document is private until you share it with a specific member or the whole firm.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Select value={target} onValueChange={setTarget}>
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TEAM">All team members</SelectItem>
+              {teamMembers.map((member) => (
+                <SelectItem key={member.userId} value={member.userId}>
+                  {member.name} · {member.email}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={permission} onValueChange={setPermission}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="VIEW_ONLY">View only</SelectItem>
+              <SelectItem value="ANNOTATE">Can annotate</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={share} disabled={loading || teamMembers.length === 0}>
+            {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Users className="h-4 w-4" />}
+            Share
+          </Button>
+        </div>
+      </div>
+      {shares.length ? (
+        <div className="grid gap-2 md:grid-cols-2">
+          {shares.map((share) => (
+            <div key={share.id} className="flex items-center gap-3 rounded-xl border bg-background/60 p-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-lex-500 to-amber-500 text-xs font-semibold text-white">
+                {share.sharedWith.avatarUrl ? (
+                  <img src={share.sharedWith.avatarUrl} alt={`${share.sharedWith.name} profile`} className="h-full w-full object-cover" />
+                ) : (
+                  share.sharedWith.name.slice(0, 2).toUpperCase()
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium">{share.sharedWith.name}</div>
+                <div className="truncate text-xs text-muted-foreground">{share.sharedWith.email}</div>
+              </div>
+              <Badge variant="outline" className="text-[10px]">{share.permission}</Badge>
+              <Button variant="ghost" size="icon" onClick={() => revoke(share.id)} aria-label="Revoke access">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">No one else has access yet.</div>
+      )}
+    </GlowCard>
   );
 }
 

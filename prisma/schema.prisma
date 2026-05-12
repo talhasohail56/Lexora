@@ -44,6 +44,10 @@ model User {
   complianceChecks ComplianceCheck[]
   documentSharesBy DocumentShare[]   @relation("SharedBy")
   documentSharesTo DocumentShare[]   @relation("SharedWith")
+  ownedFirms      Firm[]             @relation("FirmOwner")
+  firmMemberships FirmMember[]
+  firmInvitesSent FirmInvitation[]   @relation("FirmInvitedBy")
+  firmInvitesAccepted FirmInvitation[] @relation("FirmAcceptedBy")
   annotations     Annotation[]
   notifications   Notification[]
   auditLogs       AuditLog[]
@@ -145,6 +149,59 @@ model Document {
   timelineEvents   TimelineEvent[]
 
   @@index([userId])
+  @@index([status])
+}
+
+// =================== 2A. FIRM WORKSPACES ===================
+model Firm {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner       User             @relation("FirmOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     FirmMember[]
+  invitations FirmInvitation[]
+
+  @@index([ownerId])
+}
+
+model FirmMember {
+  id       String   @id @default(cuid())
+  firmId   String
+  userId   String
+  role     String   @default("MEMBER") // OWNER | ADMIN | MEMBER
+  status   String   @default("ACTIVE") // ACTIVE | REMOVED
+  joinedAt DateTime @default(now())
+
+  firm Firm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([firmId, userId])
+  @@index([userId])
+  @@index([firmId])
+}
+
+model FirmInvitation {
+  id           String   @id @default(cuid())
+  firmId       String
+  email        String
+  role         String   @default("MEMBER") // ADMIN | MEMBER
+  token        String   @unique
+  status       String   @default("PENDING") // PENDING | ACCEPTED | REVOKED | EXPIRED
+  invitedById  String
+  acceptedById String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  firm       Firm  @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  invitedBy  User  @relation("FirmInvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+  acceptedBy User? @relation("FirmAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@index([firmId])
+  @@index([email])
   @@index([status])
 }
 

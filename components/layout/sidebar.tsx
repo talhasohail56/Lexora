@@ -47,6 +47,7 @@ const sections: {
     heading: "Account",
     items: [
       { href: "/notifications", label: "Notifications", icon: Bell },
+      { href: "/team", label: "Team", icon: Users },
       { href: "/billing", label: "Billing", icon: CreditCard },
       { href: "/settings", label: "Settings", icon: Settings },
     ],

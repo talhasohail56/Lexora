@@ -6,7 +6,7 @@ export async function GET() {
   const s = await getSession();
   if (!s) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const docs = await prisma.document.findMany({
-    where: { userId: s.userId },
+    where: { OR: [{ userId: s.userId }, { shares: { some: { sharedWithId: s.userId } } }] },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(docs);

@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 const PROTECTED = [
   "/dashboard", "/documents", "/chat", "/search", "/draft", "/compliance",
   "/compare", "/timeline", "/notifications", "/admin", "/settings",
-  "/billing", "/negotiator", "/forecast", "/glossary", "/library", "/voice-brief", "/annotations",
+  "/billing", "/team", "/negotiator", "/forecast", "/glossary", "/library", "/voice-brief", "/annotations",
 ];
 const ADMIN_ONLY = ["/admin"];
 

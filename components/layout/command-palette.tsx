@@ -88,6 +88,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
                         <Item icon={GitCompare} label="Compare Documents" onSelect={() => go("/compare")} />
                         <Item icon={Clock} label="Timeline" onSelect={() => go("/timeline")} />
                         <Item icon={Bell} label="Notifications" onSelect={() => go("/notifications")} />
+                        <Item icon={Users} label="Team Workspace" onSelect={() => go("/team")} />
                         <Item icon={CreditCard} label="Billing" onSelect={() => go("/billing")} />
                       </Group>
 
