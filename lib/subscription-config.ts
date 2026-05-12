@@ -351,7 +351,12 @@ export function isLimitUnlimited(limit: PlanLimit | undefined) {
 }
 
 export function getPlanLimit(ctx: SubscriptionContext, feature: SubscriptionFeature) {
-  return ctx.plan.limits[feature];
+  return ctx.plan.limits[feature] ?? DEFAULT_PLANS.find((plan) => plan.code === ctx.plan.code)?.limits[feature];
+}
+
+function planIncludesFeature(ctx: SubscriptionContext, feature: SubscriptionFeature) {
+  if (ctx.plan.features.includes(feature)) return true;
+  return Boolean(DEFAULT_PLANS.find((plan) => plan.code === ctx.plan.code)?.features.includes(feature));
 }
 
 export function canRoleUseFeature(role: AppRole, feature: SubscriptionFeature) {
@@ -364,7 +369,7 @@ export function canUseFeature(ctx: SubscriptionContext, feature: SubscriptionFea
   if (ALWAYS_AVAILABLE_FEATURES.includes(feature)) return true;
   if (!isActiveStatus(ctx.status)) return false;
   if (!canRoleUseFeature(ctx.role, feature)) return false;
-  if (!ctx.plan.features.includes(feature)) return false;
+  if (!planIncludesFeature(ctx, feature)) return false;
   const limit = getPlanLimit(ctx, feature);
   if (isLimitUnlimited(limit)) return true;
   if (typeof limit === "number") return (ctx.usage[feature] ?? 0) < limit;
@@ -379,7 +384,7 @@ export function subscriptionBlockReason(ctx: SubscriptionContext, feature: Subsc
   if (!canRoleUseFeature(ctx.role, feature)) {
     return `${FEATURE_LABELS[feature]} requires a lawyer seat.`;
   }
-  if (!ctx.plan.features.includes(feature)) {
+  if (!planIncludesFeature(ctx, feature)) {
     return `${FEATURE_LABELS[feature]} is not included in ${ctx.plan.name}.`;
   }
   const limit = getPlanLimit(ctx, feature);
