@@ -32,8 +32,13 @@ export default function DraftPage() {
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
   const [publishedDocumentId, setPublishedDocumentId] = useState<string | null>(null);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("config");
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => {
+    refresh();
+    const draftId = new URLSearchParams(window.location.search).get("draft");
+    if (draftId) loadDraft(draftId);
+  }, []);
 
   async function refresh() {
     const r = await fetch("/api/draft");
@@ -98,6 +103,7 @@ export default function DraftPage() {
     setSelectedType(data.templateType);
     setPublishedDocumentId(data.documentId || null);
     setVersionHistory(JSON.parse(data.versionHistory || "[]"));
+    setActiveTab("editor");
   }
 
   return (
@@ -124,7 +130,7 @@ export default function DraftPage() {
 
         <div className="col-span-12 lg:col-span-9 space-y-4">
           <GlowCard className="p-5">
-            <Tabs defaultValue="config">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList>
                 <TabsTrigger value="config">Configure</TabsTrigger>
                 <TabsTrigger value="editor">Editor</TabsTrigger>

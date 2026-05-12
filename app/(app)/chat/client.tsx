@@ -2,15 +2,26 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, MessageSquare, Plus, Sparkles, FileText, Loader2 } from "lucide-react";
+import { Send, MessageSquare, Plus, Sparkles, FileText, Loader2, ScrollText, ArrowUpRight } from "lucide-react";
 import { GlowCard } from "@/components/animated/glow-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { PageTransition } from "@/components/animated/page-transition";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatRelative, safeJson } from "@/lib/utils";
+
+const CHAT_DRAFT_TYPES = [
+  { value: "CUSTOM_CONTRACT", label: "Custom Contract", desc: "Agreement drafted from the facts gathered in chat." },
+  { value: "LEGAL_NOTICE", label: "Legal Notice", desc: "Demand/remedy notice with Pakistan-style placeholders." },
+  { value: "PLAINT", label: "Suit / Plaint", desc: "Civil suit plaint draft for lawyer review." },
+  { value: "WRITTEN_STATEMENT", label: "Written Statement", desc: "Defence/reply draft for civil litigation." },
+  { value: "PETITION", label: "Petition / Application", desc: "Formal application with grounds and prayer." },
+] as const;
 
 export function ChatClient({
   sessions,
@@ -30,6 +41,12 @@ export function ChatClient({
   const [messages, setMessages] = useState<any[]>(initialMessages || []);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [draftDialogOpen, setDraftDialogOpen] = useState(false);
+  const [draftType, setDraftType] = useState<(typeof CHAT_DRAFT_TYPES)[number]["value"]>("CUSTOM_CONTRACT");
+  const [draftTitle, setDraftTitle] = useState("Custom legal draft");
+  const [draftInstructions, setDraftInstructions] = useState("");
+  const [drafting, setDrafting] = useState(false);
+  const [createdDraft, setCreatedDraft] = useState<{ id: string; openUrl: string; title: string } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, sending]);
@@ -79,6 +96,40 @@ export function ChatClient({
     window.history.replaceState({}, "", `/chat?session=${id}`);
   }
 
+  async function createDraftFromChat(e: React.FormEvent) {
+    e.preventDefault();
+    if (!sessionId) {
+      toast.error("Chat first so Lexora has facts to draft from");
+      return;
+    }
+    if (!draftTitle.trim()) {
+      toast.error("Add a draft title");
+      return;
+    }
+
+    setDrafting(true);
+    setCreatedDraft(null);
+    try {
+      const r = await fetch(`/api/chat/sessions/${sessionId}/draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          documentType: draftType,
+          title: draftTitle.trim(),
+          instructions: draftInstructions.trim() || undefined,
+        }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Could not create draft");
+      setCreatedDraft({ id: data.id, openUrl: data.openUrl, title: data.title });
+      toast.success("Draft created from chat");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setDrafting(false);
+    }
+  }
+
   return (
     <PageTransition>
       <div className="grid h-[calc(100vh-8rem)] min-h-0 grid-cols-12 gap-4 overflow-hidden">
@@ -111,6 +162,72 @@ export function ChatClient({
             <Sparkles className="h-4 w-4 text-lex-500" />
             <span className="font-semibold text-sm">RAG Chat</span>
             <div className="ml-auto flex items-center gap-2 text-xs">
+              <Dialog open={draftDialogOpen} onOpenChange={setDraftDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!sessionId || messages.filter((m) => m.role === "USER").length === 0}
+                    title={!sessionId ? "Chat first, then create a draft" : undefined}
+                  >
+                    <ScrollText className="h-3.5 w-3.5" />
+                    Draft from chat
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create legal draft from this chat</DialogTitle>
+                    <DialogDescription>
+                      Lexora will use the facts and instructions already discussed in this conversation.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={createDraftFromChat} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label>Document type</Label>
+                      <Select value={draftType} onValueChange={(value) => setDraftType(value as typeof draftType)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {CHAT_DRAFT_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        {CHAT_DRAFT_TYPES.find((type) => type.value === draftType)?.desc}
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Draft title</Label>
+                      <Input value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Extra instructions</Label>
+                      <Textarea
+                        value={draftInstructions}
+                        onChange={(event) => setDraftInstructions(event.target.value)}
+                        placeholder="Example: make it plaintiff-friendly, include damages prayer, add placeholders for CNIC and court fee."
+                        rows={4}
+                      />
+                    </div>
+                    {createdDraft && (
+                      <div className="rounded-lg border bg-muted/40 p-3 text-sm">
+                        <div className="font-medium">{createdDraft.title}</div>
+                        <p className="mt-1 text-xs text-muted-foreground">Created in Drafts. Open it to edit, save, and download Word.</p>
+                        <Button asChild variant="gradient" size="sm" className="mt-3">
+                          <a href={createdDraft.openUrl}>
+                            Open draft <ArrowUpRight className="h-3.5 w-3.5" />
+                          </a>
+                        </Button>
+                      </div>
+                    )}
+                    <Button type="submit" variant="gradient" className="w-full" disabled={drafting}>
+                      {drafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><ScrollText className="h-4 w-4" /> Create draft</>}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
               <span className="text-muted-foreground">Scope:</span>
               <Select value={scope} onValueChange={setScope}>
                 <SelectTrigger className="w-56 h-8 text-xs"><SelectValue /></SelectTrigger>
