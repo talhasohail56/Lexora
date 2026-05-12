@@ -16,6 +16,27 @@ export type CompareResult = {
   similarityScore: number; // 0..1
 };
 
+function sourceClauses(doc: {
+  clauses: { clauseType: string; text: string }[];
+  extractedText?: string | null;
+}) {
+  if (doc.clauses.length) {
+    return doc.clauses.map((c) => ({ type: c.clauseType, text: c.text }));
+  }
+
+  const fallbackText = doc.extractedText || "";
+  const sections = fallbackText
+    .split(/\n\s*\n|(?=^[A-Z][A-Z\s,&/-]{5,}$)/gm)
+    .map((text) => text.trim())
+    .filter((text) => text.length > 40)
+    .slice(0, 30);
+
+  return (sections.length ? sections : [fallbackText]).map((text, i) => ({
+    type: `Section ${i + 1}`,
+    text,
+  }));
+}
+
 export async function compareTwo(docAId: string, docBId: string): Promise<CompareResult> {
   const [a, b] = await Promise.all([
     prisma.document.findUnique({ where: { id: docAId }, include: { clauses: true } }),
@@ -23,13 +44,16 @@ export async function compareTwo(docAId: string, docBId: string): Promise<Compar
   ]);
   if (!a || !b) throw new Error("One or both documents not found");
 
+  const aClauses = sourceClauses(a);
+  const bClauses = sourceClauses(b);
+
   const prompt = `Compare these two contract clause sets and return JSON with shape { "added": [{clauseType,text}], "removed": [{clauseType,text}], "modified": [{clauseType,before,after}], "unchanged": number, "similarityScore": 0.0-1.0 }.
 
 DOC A clauses:
-${JSON.stringify(a.clauses.map((c) => ({ type: c.clauseType, text: c.text })), null, 2)}
+${JSON.stringify(aClauses, null, 2)}
 
 DOC B clauses:
-${JSON.stringify(b.clauses.map((c) => ({ type: c.clauseType, text: c.text })), null, 2)}`;
+${JSON.stringify(bClauses, null, 2)}`;
 
   const raw = await chatComplete([{ role: "user", content: prompt }], { temperature: 0.2, jsonMode: true });
   let parsed: CompareResult;
@@ -39,11 +63,11 @@ ${JSON.stringify(b.clauses.map((c) => ({ type: c.clauseType, text: c.text })), n
 
   // Sanity: recompute similarity from clause embeddings if we have them.
   try {
-    const texts = [...a.clauses.map((c) => c.text), ...b.clauses.map((c) => c.text)];
+    const texts = [...aClauses.map((c) => c.text), ...bClauses.map((c) => c.text)];
     if (texts.length > 1) {
       const vecs = await embed(texts);
-      const aVecs = vecs.slice(0, a.clauses.length);
-      const bVecs = vecs.slice(a.clauses.length);
+      const aVecs = vecs.slice(0, aClauses.length);
+      const bVecs = vecs.slice(aClauses.length);
       const sims: number[] = [];
       for (const av of aVecs) {
         const best = bVecs.reduce((acc, bv) => Math.max(acc, cosineSimilarity(av, bv)), 0);

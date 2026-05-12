@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ScrollText, Loader2, Save, History, Download, Sparkles } from "lucide-react";
+import { ScrollText, Loader2, Save, Download, Sparkles, FileText } from "lucide-react";
 import { GlowCard } from "@/components/animated/glow-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,7 @@ export default function DraftPage() {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState("");
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+  const [publishedDocumentId, setPublishedDocumentId] = useState<string | null>(null);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
 
   useEffect(() => { refresh(); }, []);
@@ -52,6 +53,7 @@ export default function DraftPage() {
       if (!r.ok) throw new Error(data.error);
       setContent(data.content);
       setCurrentDraftId(data.id);
+      setPublishedDocumentId(null);
       toast.success("Draft generated");
       refresh();
     } catch (e: any) { toast.error(e.message); }
@@ -59,23 +61,32 @@ export default function DraftPage() {
   }
 
   async function save() {
-    if (!currentDraftId) return;
+    if (!currentDraftId) {
+      toast.error("Generate a draft before saving");
+      return null;
+    }
     const r = await fetch(`/api/draft/${currentDraftId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, title }),
     });
-    if (r.ok) { toast.success("Version saved"); refresh(); }
-    else toast.error("Save failed");
+    const data = await r.json().catch(() => ({}));
+    if (r.ok) {
+      setContent(data.content || content);
+      setVersionHistory(JSON.parse(data.versionHistory || "[]"));
+      setPublishedDocumentId(data.documentId || null);
+      toast.success("Saved as a formatted Word document in Documents");
+      refresh();
+      return data.documentId as string;
+    }
+    toast.error(data.error || "Save failed");
+    return null;
   }
 
-  function downloadTxt() {
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${title}.txt`;
-    a.click();
+  async function downloadWord() {
+    const documentId = publishedDocumentId || await save();
+    if (!documentId) return;
+    window.location.href = `/api/documents/${documentId}/download`;
   }
 
   async function loadDraft(id: string) {
@@ -85,6 +96,7 @@ export default function DraftPage() {
     setTitle(data.title);
     setContent(data.content);
     setSelectedType(data.templateType);
+    setPublishedDocumentId(data.documentId || null);
     setVersionHistory(JSON.parse(data.versionHistory || "[]"));
   }
 
@@ -160,7 +172,12 @@ export default function DraftPage() {
                 <div className="flex items-center gap-2">
                   <Input value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1" />
                   <Button variant="outline" onClick={save} disabled={!currentDraftId}><Save className="h-4 w-4" /> Save</Button>
-                  <Button variant="outline" onClick={downloadTxt} disabled={!content}><Download className="h-4 w-4" /> Download</Button>
+                  <Button variant="outline" onClick={downloadWord} disabled={!content}><Download className="h-4 w-4" /> Word</Button>
+                  {publishedDocumentId && (
+                    <Button variant="ghost" asChild>
+                      <a href={`/documents/${publishedDocumentId}`}><FileText className="h-4 w-4" /> Document</a>
+                    </Button>
+                  )}
                 </div>
                 <Textarea
                   value={content}

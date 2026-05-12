@@ -81,14 +81,14 @@ export function ChatClient({
 
   return (
     <PageTransition>
-      <div className="grid grid-cols-12 gap-4 h-[calc(100vh-10rem)]">
+      <div className="grid h-[calc(100vh-8rem)] min-h-0 grid-cols-12 gap-4 overflow-hidden">
         {/* Sessions */}
-        <GlowCard className="col-span-12 md:col-span-3 p-3 flex flex-col">
-          <Button variant="gradient" onClick={newChat} className="mb-3"><Plus className="h-4 w-4" /> New chat</Button>
+        <GlowCard className="col-span-12 flex min-h-0 flex-col overflow-hidden p-3 md:col-span-3">
+          <Button variant="gradient" onClick={newChat} className="mb-3 shrink-0"><Plus className="h-4 w-4" /> New chat</Button>
           <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-2 mb-1">
             Sessions
           </div>
-          <div className="flex-1 overflow-y-auto scrollbar-thin space-y-1">
+          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain pr-1 scrollbar-thin">
             {sessions.length === 0 && <p className="text-xs text-muted-foreground px-2 py-4">No sessions yet</p>}
             {sessions.map((s) => (
               <button
@@ -106,8 +106,8 @@ export function ChatClient({
         </GlowCard>
 
         {/* Chat pane */}
-        <GlowCard className="col-span-12 md:col-span-9 p-0 flex flex-col">
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+        <GlowCard className="col-span-12 flex min-h-0 flex-col overflow-hidden p-0 md:col-span-9">
+          <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
             <Sparkles className="h-4 w-4 text-lex-500" />
             <span className="font-semibold text-sm">RAG Chat</span>
             <div className="ml-auto flex items-center gap-2 text-xs">
@@ -123,7 +123,7 @@ export function ChatClient({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto scrollbar-thin px-6 py-4 space-y-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-4 pr-3 scrollbar-thin">
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center px-4">
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-lex-500 to-amber-500 flex items-center justify-center text-white mb-4 shadow-glow">
@@ -204,7 +204,7 @@ export function ChatClient({
             <div ref={endRef} />
           </div>
 
-          <form onSubmit={send} className="border-t border-border p-3">
+          <form onSubmit={send} className="shrink-0 border-t border-border p-3">
             <div className="relative">
               <Textarea
                 placeholder="Ask anything…"

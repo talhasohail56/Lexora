@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
   FileText, AlertTriangle, Shield, Clock, MessageSquare, Sparkles,
-  Mic, RefreshCw, BookOpen, Volume2, ArrowLeft, Activity, GitCompare
+  Mic, RefreshCw, BookOpen, Volume2, ArrowLeft, Activity, GitCompare, Download
 } from "lucide-react";
 import { PageTransition } from "@/components/animated/page-transition";
 import { Stagger, StaggerItem } from "@/components/animated/scroll-reveal";
@@ -110,6 +110,9 @@ export function DocumentDetailClient({ doc, sessionUserId, sessionRole }: { doc:
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" asChild>
+              <a href={`/api/documents/${doc.id}/download`}><Download className="h-4 w-4" /> Download</a>
+            </Button>
             <Button variant="outline" onClick={speakBrief}><Volume2 className="h-4 w-4" /> Voice brief</Button>
             <Button variant="outline" onClick={runCompliance} disabled={running}><Shield className="h-4 w-4" /> Run compliance</Button>
             <Button variant="outline" onClick={extractTimeline} disabled={running}><Clock className="h-4 w-4" /> Extract timeline</Button>
