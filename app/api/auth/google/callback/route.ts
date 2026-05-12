@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const profile = await exchangeGoogleCode(code);
+    const profile = await exchangeGoogleCode(code, req.nextUrl.origin);
     const role = req.cookies.get(ROLE_COOKIE)?.value === "LAWYER" ? "LAWYER" : "USER";
     const planCode = req.cookies.get(PLAN_COOKIE)?.value || undefined;
     const { token } = await loginWithGoogle(

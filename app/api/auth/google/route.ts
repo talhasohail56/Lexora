@@ -17,7 +17,8 @@ function oauthCookieOptions() {
 }
 
 export async function GET(req: NextRequest) {
-  const config = getGoogleOAuthConfig();
+  const origin = req.nextUrl.origin;
+  const config = getGoogleOAuthConfig(origin);
   if (!config.isConfigured) {
     return NextResponse.redirect(new URL("/login?error=google_not_configured", req.url));
   }
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
   const role = req.nextUrl.searchParams.get("role") === "LAWYER" ? "LAWYER" : "USER";
   const plan = req.nextUrl.searchParams.get("plan")?.toUpperCase() || "";
   const state = randomBytes(24).toString("base64url");
-  const response = NextResponse.redirect(createGoogleAuthorizationUrl(state));
+  const response = NextResponse.redirect(createGoogleAuthorizationUrl(state, origin));
 
   response.cookies.set(STATE_COOKIE, state, oauthCookieOptions());
   response.cookies.set(ROLE_COOKIE, role, oauthCookieOptions());

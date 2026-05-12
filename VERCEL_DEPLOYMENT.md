@@ -12,10 +12,11 @@ Lexora is ready for Vercel. Do not commit real `.env` files to GitHub.
 /Users/talhasohail/ai-paralegal-v2/.env.vercel
 ```
 
-4. Make sure Google OAuth has this authorized redirect URI:
+4. Make sure Google OAuth has these authorized redirect URIs:
 
 ```text
 https://YOUR_VERCEL_DOMAIN/api/auth/google/callback
+http://localhost:3000/api/auth/google/callback
 ```
 
 5. Update these two Vercel env values after the domain is known:
@@ -24,6 +25,8 @@ https://YOUR_VERCEL_DOMAIN/api/auth/google/callback
 NEXT_PUBLIC_APP_URL="https://YOUR_VERCEL_DOMAIN"
 GOOGLE_REDIRECT_URI="https://YOUR_VERCEL_DOMAIN/api/auth/google/callback"
 ```
+
+`GOOGLE_REDIRECT_URI` is now only a fallback. On Vercel, Lexora derives the redirect URI from the actual request domain so preview/custom domains do not accidentally send a stale localhost callback. Google Cloud still requires every callback domain to be listed under **Authorized redirect URIs**.
 
 ## Required Variables
 

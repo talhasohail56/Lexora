@@ -10,14 +10,19 @@ const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo";
 
-function appUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+function appUrl(origin?: string) {
+  return (origin || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
 }
 
-export function getGoogleOAuthConfig() {
+export function googleRedirectUri(origin?: string) {
+  if (origin) return `${appUrl(origin)}/api/auth/google/callback`;
+  return process.env.GOOGLE_REDIRECT_URI || `${appUrl()}/api/auth/google/callback`;
+}
+
+export function getGoogleOAuthConfig(origin?: string) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_KEY;
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${appUrl()}/api/auth/google/callback`;
+  const redirectUri = googleRedirectUri(origin);
 
   return {
     clientId,
@@ -27,8 +32,8 @@ export function getGoogleOAuthConfig() {
   };
 }
 
-export function createGoogleAuthorizationUrl(state: string) {
-  const config = getGoogleOAuthConfig();
+export function createGoogleAuthorizationUrl(state: string, origin?: string) {
+  const config = getGoogleOAuthConfig(origin);
   if (!config.clientId) throw new Error("GOOGLE_CLIENT_ID is not configured");
 
   const url = new URL(GOOGLE_AUTH_URL);
@@ -42,8 +47,8 @@ export function createGoogleAuthorizationUrl(state: string) {
   return url;
 }
 
-export async function exchangeGoogleCode(code: string): Promise<GoogleProfile> {
-  const config = getGoogleOAuthConfig();
+export async function exchangeGoogleCode(code: string, origin?: string): Promise<GoogleProfile> {
+  const config = getGoogleOAuthConfig(origin);
   if (!config.clientId || !config.clientSecret) {
     throw new Error("Google OAuth is missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET");
   }
