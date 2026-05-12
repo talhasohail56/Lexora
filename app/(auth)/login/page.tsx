@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowRight, Database, FileSearch, Loader2, Lock, Mail, Scale, ShieldCheck } from "lucide-react";
+import { ArrowRight, Database, FileSearch, Loader2, Lock, Mail, Scale } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -47,68 +47,72 @@ export default function LoginPage() {
       initial={{ opacity: 0, y: 24, filter: "blur(10px)" }}
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
-      className="grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1.08fr_0.92fr]"
+      className="grid w-full max-w-6xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]"
     >
-      <section className="relative hidden min-h-[560px] lg:block">
+      <section className="relative hidden min-h-[620px] overflow-hidden lg:block">
+        <div className="absolute inset-x-0 top-20 h-px bg-gradient-to-r from-transparent via-white/[0.18] to-transparent" />
+        <div className="absolute bottom-20 left-0 h-px w-[82%] bg-gradient-to-r from-white/[0.20] to-transparent" />
+        <div className="absolute left-16 top-36 h-80 w-80 rounded-full border border-white/[0.10]" />
+        <div className="absolute left-28 top-48 h-52 w-52 rounded-full border border-white/[0.08]" />
+
         <motion.div
           animate={{ y: [0, -10, 0], rotate: [-4, -2, -4] }}
           transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-          className="absolute left-0 top-10 w-72 rounded-lg border border-white/[0.10] bg-white/[0.055] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.28)] backdrop-blur-md"
+          className="absolute left-0 top-0 z-10 w-64 rounded-xl border border-white/[0.10] bg-white/[0.055] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.28)] backdrop-blur-md"
         >
           <p className="text-xs text-white/[0.38]">vector memory</p>
-          <div className="mt-8 flex items-center gap-3">
+          <div className="mt-7 flex items-center gap-3">
             <Database className="h-5 w-5 text-teal-200" />
-            <p className="text-3xl font-semibold">4,011 chunks</p>
+            <p className="text-2xl font-semibold">4,011 chunks</p>
           </div>
         </motion.div>
 
         <motion.div
           animate={{ y: [0, 12, 0], rotate: [5, 3, 5] }}
           transition={{ repeat: Infinity, duration: 7, ease: "easeInOut" }}
-          className="absolute right-2 top-28 w-72 rounded-lg border border-white/[0.10] bg-white/[0.055] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.28)] backdrop-blur-md"
+          className="absolute right-3 top-24 z-10 w-72 rounded-xl border border-white/[0.10] bg-white/[0.055] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.28)] backdrop-blur-md"
         >
           <p className="text-xs text-white/[0.38]">jurisdiction</p>
-          <div className="mt-8 flex items-center gap-3">
+          <div className="mt-7 flex items-center gap-3">
             <Scale className="h-5 w-5 text-amber-200" />
-            <p className="text-3xl font-semibold">Pakistan Code</p>
+            <p className="text-2xl font-semibold">Pakistan Code</p>
           </div>
         </motion.div>
 
-        <div className="absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.12]" />
         <motion.div
           animate={{ scale: [1, 1.04, 1], rotate: [0, 10, 0] }}
           transition={{ repeat: Infinity, duration: 9, ease: "easeInOut" }}
-          className="absolute left-1/2 top-[52%] h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_34%_24%,#ffd29a_0%,#d87936_42%,#5b1e10_76%,#1b0704_100%)] shadow-[0_30px_120px_rgba(249,115,22,0.28)]"
+          className="absolute right-20 top-56 z-0 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_34%_24%,#ffd29a_0%,#d87936_42%,#5b1e10_76%,#1b0704_100%)] opacity-80 shadow-[0_30px_120px_rgba(249,115,22,0.28)]"
         >
           <div className="absolute inset-10 rounded-full border border-black/[0.28] bg-black/[0.10]" />
           <div className="absolute inset-0 rounded-full bg-[linear-gradient(135deg,rgba(255,255,255,0.32),transparent_48%,rgba(0,0,0,0.32))]" />
         </motion.div>
 
-        <motion.div
-          animate={{ y: [0, -12, 0], rotate: [3, 5, 3] }}
-          transition={{ repeat: Infinity, duration: 6.4, ease: "easeInOut" }}
-          className="absolute bottom-10 left-14 w-72 rounded-lg border border-white/[0.10] bg-black/[0.22] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.28)] backdrop-blur-md"
-        >
-          <p className="text-xs text-white/[0.38]">risk radar</p>
-          <div className="mt-8 flex items-center gap-3">
-            <ShieldCheck className="h-5 w-5 text-teal-200" />
-            <p className="text-3xl font-semibold">citations first</p>
-          </div>
-        </motion.div>
-
-        <div className="absolute bottom-0 left-0 max-w-xl">
-          <p className="mb-5 text-xs text-white/[0.48]">LEGAL WORKSPACE / RAG SYSTEM / SECURE ACCESS</p>
-          <h1 className="text-7xl font-semibold leading-none">Enter the legal machine.</h1>
+        <div className="absolute bottom-0 left-0 z-20 max-w-[520px]">
+          <p className="mb-5 text-xs tracking-[0.14em] text-white/[0.48]">LEGAL WORKSPACE / RAG SYSTEM / SECURE ACCESS</p>
+          <h1 className="max-w-[500px] text-6xl font-semibold leading-[0.94] xl:text-7xl">Enter the legal machine.</h1>
           <p className="mt-6 max-w-md text-sm leading-6 text-white/[0.52]">
             Sign in to retrieve legal context, analyze contracts, draft documents and keep every answer attached to evidence.
           </p>
+          <div className="mt-8 grid max-w-xl grid-cols-3 gap-3 border-t border-white/[0.10] pt-5">
+            {[
+              ["Corpus", "1,000 sources"],
+              ["Retrieval", "citations first"],
+              ["Access", "role gated"],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <p className="text-[11px] text-white/[0.34]">{label}</p>
+                <p className="mt-1 text-sm font-medium text-white/[0.78]">{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       <section className="mx-auto w-full max-w-md">
-        <div className="rounded-lg border border-white/[0.10] bg-white/[0.055] p-6 shadow-[0_30px_110px_rgba(0,0,0,0.34)] backdrop-blur-xl md:p-8">
+        <div className="rounded-2xl border border-white/[0.10] bg-white/[0.055] p-6 shadow-[0_30px_110px_rgba(0,0,0,0.34)] backdrop-blur-xl md:p-8">
           <div className="mb-7">
-            <p className="mb-3 text-xs text-teal-200/[0.72]">LEXORA ACCESS</p>
+            <p className="mb-3 text-xs tracking-[0.14em] text-teal-200/[0.72]">LEXORA ACCESS</p>
             <h2 className="text-4xl font-semibold leading-none">Welcome back</h2>
             <p className="mt-3 text-sm leading-6 text-white/[0.48]">Continue into your AI paralegal workspace.</p>
           </div>
@@ -166,7 +170,7 @@ export default function LoginPage() {
             <Link href="/register" className="font-medium text-white underline-offset-4 hover:underline">Create an account</Link>
           </p>
 
-          <div className="mt-6 rounded-lg border border-white/[0.10] bg-black/[0.22] p-4 text-xs text-white/[0.46]">
+          <div className="mt-6 rounded-xl border border-white/[0.10] bg-black/[0.22] p-4 text-xs text-white/[0.46]">
             <div className="mb-3 flex items-center gap-2 text-white/[0.72]">
               <FileSearch className="h-4 w-4 text-teal-200" />
               Demo access
