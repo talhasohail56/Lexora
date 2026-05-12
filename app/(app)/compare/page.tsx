@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { GitCompare, Loader2, Plus, X, FileText } from "lucide-react";
+import { AlertTriangle, ArrowRight, FileMinus2, FilePlus2, GitCompare, Loader2, PencilLine, Plus, ShieldCheck, X } from "lucide-react";
 import { GlowCard } from "@/components/animated/glow-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -65,7 +65,7 @@ export default function ComparePage() {
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <GitCompare className="h-7 w-7 text-lex-500" /> Smart Compare
           </h1>
-          <p className="text-muted-foreground">Clause-level diff between two or three documents with semantic similarity scoring.</p>
+          <p className="text-muted-foreground">Compare contract versions, find what changed, and see why each difference matters before signing.</p>
         </div>
 
         <GlowCard className="p-6">
@@ -138,38 +138,143 @@ function CompareResultView({
   title?: string;
   similarityLabel?: (score: number) => string;
 }) {
+  const added = Array.isArray(result.added) ? result.added : [];
+  const removed = Array.isArray(result.removed) ? result.removed : [];
+  const modified = Array.isArray(result.modified) ? result.modified : [];
+  const keyDifferences = Array.isArray(result.keyDifferences) ? result.keyDifferences : [];
+
   return (
     <GlowCard className="p-5">
       {title && <h3 className="font-semibold mb-3">{title}</h3>}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-        <Stat label="Added" value={result.added.length} color="from-emerald-500 to-teal-500" />
-        <Stat label="Removed" value={result.removed.length} color="from-red-500 to-orange-500" />
-        <Stat label="Modified" value={result.modified.length} color="from-amber-500 to-orange-500" />
+        <Stat label="Added" value={added.length} color="from-emerald-500 to-teal-500" />
+        <Stat label="Removed" value={removed.length} color="from-red-500 to-orange-500" />
+        <Stat label="Modified" value={modified.length} color="from-amber-500 to-orange-500" />
         <Stat label="Similarity" value={similarityLabel(result.similarityScore)} color="from-lex-500 to-amber-500" />
       </div>
 
-      <Section heading="Added" color="text-emerald-500">
-        {result.added.map((c: any, i: number) => (
-          <Item key={i} kind="add" type={c.clauseType} text={c.text} />
-        ))}
-      </Section>
-      <Section heading="Removed" color="text-red-500">
-        {result.removed.map((c: any, i: number) => (
-          <Item key={i} kind="remove" type={c.clauseType} text={c.text} />
-        ))}
-      </Section>
-      <Section heading="Modified" color="text-amber-500">
-        {result.modified.map((c: any, i: number) => (
-          <div key={i} className="p-3 rounded-md border bg-amber-500/5 mb-2">
-            <Badge variant="warning" className="mb-2">{c.clauseType}</Badge>
-            <div className="space-y-2 text-sm">
-              <div><span className="text-xs text-red-500 font-medium">- before:</span> <span className="line-through opacity-70">{c.before}</span></div>
-              <div><span className="text-xs text-emerald-500 font-medium">+ after:</span> {c.after}</div>
-            </div>
+      {result.summary && (
+        <div className="mb-4 rounded-lg border border-border bg-card/40 p-4">
+          <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
+            <ShieldCheck className="h-4 w-4 text-lex-500" /> Review summary
           </div>
-        ))}
-      </Section>
+          <p className="text-sm leading-relaxed text-muted-foreground">{result.summary}</p>
+        </div>
+      )}
+
+      {keyDifferences.length > 0 && (
+        <div className="mb-5 space-y-3">
+          <h4 className="text-sm font-semibold">Key differences and legal impact</h4>
+          {keyDifferences.map((diff: any, i: number) => (
+            <DifferenceCard key={i} diff={diff} />
+          ))}
+        </div>
+      )}
+
+      {added.length || removed.length || modified.length ? (
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold">Clause evidence</h4>
+          {added.length > 0 && (
+            <Section heading="Added in Document B" color="text-emerald-500">
+              {added.map((c: any, i: number) => (
+                <Item key={i} kind="add" type={c.clauseType} text={c.text} />
+              ))}
+            </Section>
+          )}
+          {removed.length > 0 && (
+            <Section heading="Removed from Document A" color="text-red-500">
+              {removed.map((c: any, i: number) => (
+                <Item key={i} kind="remove" type={c.clauseType} text={c.text} />
+              ))}
+            </Section>
+          )}
+          {modified.length > 0 && (
+            <Section heading="Modified wording" color="text-amber-500">
+              {modified.map((c: any, i: number) => (
+                <div key={i} className="p-3 rounded-md border bg-amber-500/5 mb-2">
+                  <Badge variant="warning" className="mb-2">{c.clauseType}</Badge>
+                  <div className="space-y-2 text-sm">
+                    <div><span className="text-xs text-red-500 font-medium">Document A:</span> <span className="line-through opacity-70">{c.before}</span></div>
+                    <div><span className="text-xs text-emerald-500 font-medium">Document B:</span> {c.after}</div>
+                  </div>
+                </div>
+              ))}
+            </Section>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-lg border border-border bg-card/40 p-4 text-sm text-muted-foreground">
+          No material clause-level differences were detected.
+        </div>
+      )}
     </GlowCard>
+  );
+}
+
+function DifferenceCard({ diff }: { diff: any }) {
+  const type = String(diff.changeType || "MODIFIED").toUpperCase();
+  const Icon = type === "ADDED" ? FilePlus2 : type === "REMOVED" ? FileMinus2 : PencilLine;
+  const tone =
+    type === "ADDED"
+      ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-500"
+      : type === "REMOVED"
+        ? "border-red-500/20 bg-red-500/5 text-red-500"
+        : "border-amber-500/20 bg-amber-500/5 text-amber-500";
+
+  return (
+    <div className={`rounded-lg border p-4 ${tone}`}>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
+          <Icon className="h-4 w-4" /> {diff.area || "Contract term"}
+        </span>
+        <Badge variant="outline">{type}</Badge>
+        <RiskBadge level={diff.riskLevel} />
+      </div>
+      {(diff.before || diff.after) && (
+        <div className="mb-3 grid gap-3 md:grid-cols-[1fr_auto_1fr]">
+          <DiffBox label="Document A" text={diff.before || "Not present"} muted={!diff.before} />
+          <div className="hidden items-center justify-center md:flex">
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <DiffBox label="Document B" text={diff.after || "Removed"} muted={!diff.after} />
+        </div>
+      )}
+      <div className="grid gap-3 md:grid-cols-2">
+        <div>
+          <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Impact</div>
+          <p className="text-sm leading-relaxed text-foreground/90">{diff.impact}</p>
+        </div>
+        <div>
+          <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Recommendation</div>
+          <p className="text-sm leading-relaxed text-foreground/90">{diff.recommendation}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DiffBox({ label, text, muted }: { label: string; text: string; muted?: boolean }) {
+  return (
+    <div className="rounded-md border border-border bg-background/55 p-3">
+      <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+      <p className={`text-sm leading-relaxed ${muted ? "italic text-muted-foreground" : "text-foreground/90"}`}>{text}</p>
+    </div>
+  );
+}
+
+function RiskBadge({ level }: { level?: string }) {
+  const risk = String(level || "MEDIUM").toUpperCase();
+  const className =
+    risk === "CRITICAL" || risk === "HIGH"
+      ? "border-red-500/30 bg-red-500/10 text-red-500"
+      : risk === "MEDIUM"
+        ? "border-amber-500/30 bg-amber-500/10 text-amber-500"
+        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-500";
+
+  return (
+    <Badge variant="outline" className={className}>
+      <AlertTriangle className="mr-1 h-3 w-3" /> {risk} impact
+    </Badge>
   );
 }
 
