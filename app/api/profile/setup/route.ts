@@ -11,7 +11,7 @@ const Body = z.object({
   barNumber: z.string().trim().max(80).optional().default(""),
   persona: z.string().trim().max(80).optional().default(""),
   practiceArea: z.string().trim().max(100).optional().default(""),
-  primaryUseCase: z.string().trim().min(6).max(800),
+  primaryUseCase: z.string().trim().max(800).optional().default(""),
   preferredTone: z.string().trim().max(80).optional().default("Detailed with citations"),
 });
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       barNumber: session.role === "LAWYER" ? data.barNumber || null : null,
       persona: data.persona || null,
       practiceArea: data.practiceArea || null,
-      primaryUseCase: data.primaryUseCase,
+      primaryUseCase: data.primaryUseCase || null,
       preferredTone: data.preferredTone || "Detailed with citations",
       profileSummary,
     },

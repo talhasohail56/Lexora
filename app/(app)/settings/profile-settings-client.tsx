@@ -124,6 +124,20 @@ export function ProfileSettingsClient({
     }
   }
 
+  function openEditor() {
+    setForm({
+      name: profile.name,
+      organization: profile.organization ?? "",
+      jurisdiction: profile.jurisdiction ?? "Pakistan",
+      barNumber: profile.barNumber ?? "",
+      persona: profile.persona ?? (isLawyer ? "Practicing lawyer" : "Startup founder"),
+      practiceArea: profile.practiceArea ?? (isLawyer ? "Corporate" : ""),
+      primaryUseCase: profile.primaryUseCase ?? "",
+      preferredTone: profile.preferredTone ?? "Detailed with citations",
+    });
+    setEditing(true);
+  }
+
   const Icon = roleCopy.icon;
 
   return (
@@ -159,7 +173,7 @@ export function ProfileSettingsClient({
               </Badge>
               <Button
                 type="button"
-                onClick={() => setEditing((value) => !value)}
+                onClick={() => (editing ? setEditing(false) : openEditor())}
                 className="rounded-full bg-white text-[#080806] hover:bg-white/90"
               >
                 <Edit3 className="h-4 w-4" />
@@ -171,40 +185,35 @@ export function ProfileSettingsClient({
 
         <div className="grid gap-6 lg:grid-cols-[1fr_0.76fr]">
           <section className="space-y-6">
-            <div className="rounded-2xl border bg-card p-6 shadow-soft">
+            <form onSubmit={save} className="rounded-2xl border bg-card p-6 shadow-soft">
               <div className="mb-5 flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-lex-500" />
-                <h2 className="text-xl font-semibold">Workspace identity</h2>
+                <div className="flex-1">
+                  <h2 className="text-xl font-semibold">{editing ? "Edit workspace identity" : "Workspace identity"}</h2>
+                  {editing ? (
+                    <p className="mt-1 text-sm text-muted-foreground">Changes here personalize chat, drafts, and dashboard copy.</p>
+                  ) : null}
+                </div>
+                {editing ? (
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" onClick={() => setEditing(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={saving}>
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                      Save
+                    </Button>
+                  </div>
+                ) : (
+                  <Button type="button" variant="outline" onClick={openEditor}>
+                    <Edit3 className="h-4 w-4" />
+                    Edit
+                  </Button>
+                )}
               </div>
               <p className="mb-5 text-sm leading-6 text-muted-foreground">{roleCopy.body}</p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <ProfileTile label="Email" value={profile.email} />
-                <ProfileTile label="Account status" value={profile.status} />
-                <ProfileTile label={roleCopy.orgLabel} value={profile.organization} />
-                <ProfileTile label="Jurisdiction" value={profile.jurisdiction || "Pakistan"} />
-                {isLawyer ? (
-                  <ProfileTile label="Bar number" value={profile.barNumber} />
-                ) : (
-                  <ProfileTile label={roleCopy.personaLabel} value={profile.persona} />
-                )}
-                <ProfileTile label={roleCopy.focusLabel} value={profile.practiceArea} />
-                <ProfileTile label="Preferred response style" value={profile.preferredTone} />
-                <ProfileTile label="Primary use case" value={profile.primaryUseCase} className="sm:col-span-2" />
-              </div>
-            </div>
 
-            {editing ? (
-              <form onSubmit={save} className="rounded-2xl border bg-card p-6 shadow-soft">
-                <div className="mb-5 flex items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-xl font-semibold">Edit profile</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">These fields personalize chat, drafts, and dashboard copy.</p>
-                  </div>
-                  <Button type="submit" disabled={saving}>
-                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                    Save changes
-                  </Button>
-                </div>
+              {editing ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Full name">
                     <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
@@ -253,14 +262,28 @@ export function ProfileSettingsClient({
                     <Textarea
                       value={form.primaryUseCase}
                       onChange={(e) => setForm({ ...form, primaryUseCase: e.target.value })}
-                      required
                       className="min-h-28"
                       placeholder={isLawyer ? "Review commercial contracts, prepare notices, summarize case files..." : "Understand contracts, prepare startup documents, compare agreements..."}
                     />
                   </Field>
                 </div>
-              </form>
-            ) : null}
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <ProfileTile label="Email" value={profile.email} />
+                  <ProfileTile label="Account status" value={profile.status} />
+                  <ProfileTile label={roleCopy.orgLabel} value={profile.organization} />
+                  <ProfileTile label="Jurisdiction" value={profile.jurisdiction || "Pakistan"} />
+                  {isLawyer ? (
+                    <ProfileTile label="Bar number" value={profile.barNumber} />
+                  ) : (
+                    <ProfileTile label={roleCopy.personaLabel} value={profile.persona} />
+                  )}
+                  <ProfileTile label={roleCopy.focusLabel} value={profile.practiceArea} />
+                  <ProfileTile label="Preferred response style" value={profile.preferredTone} />
+                  <ProfileTile label="Primary use case" value={profile.primaryUseCase} className="sm:col-span-2" />
+                </div>
+              )}
+            </form>
           </section>
 
           <aside className="space-y-6">
