@@ -48,7 +48,7 @@ export function DashboardClient({
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
             Good to see you, <span className="text-gradient">{session.name.split(" ")[0]}</span>.
           </h1>
-          <p className="mt-1 text-muted-foreground">Here's what's happening across your legal workspace.</p>
+          <p className="mt-1 text-muted-foreground">Here is what is happening across your legal workspace.</p>
         </motion.div>
 
         {/* Tiles */}

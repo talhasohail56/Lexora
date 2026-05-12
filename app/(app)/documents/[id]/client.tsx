@@ -348,7 +348,7 @@ function ClauseHeatmap({ doc }: { doc: any }) {
 
 function TimelineView({ events }: { events: any[] }) {
   if (!events.length) {
-    return <GlowCard className="p-8 text-center text-muted-foreground text-sm">No timeline events yet. Click "Extract timeline" to generate.</GlowCard>;
+    return <GlowCard className="p-8 text-center text-muted-foreground text-sm">No timeline events yet. Click Extract timeline to generate.</GlowCard>;
   }
   return (
     <div className="relative pl-6 border-l border-border space-y-4">

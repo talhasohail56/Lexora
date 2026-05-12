@@ -46,7 +46,7 @@ export default function NotificationsPage() {
                 <div className="mx-auto h-12 w-12 rounded-2xl bg-gradient-to-br from-lex-500/20 to-amber-500/20 flex items-center justify-center mb-3">
                   <BellOff className="h-5 w-5 text-lex-500" />
                 </div>
-                <p className="text-sm text-muted-foreground">You're all caught up.</p>
+                <p className="text-sm text-muted-foreground">You are all caught up.</p>
               </GlowCard>
             )}
             {items.map((n) => (

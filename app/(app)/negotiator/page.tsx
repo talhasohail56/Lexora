@@ -63,7 +63,7 @@ export default function NegotiatorPage() {
               </div>
             </div>
             <div>
-              <div className="text-sm font-medium mb-2">Paste the clause you'd like to negotiate</div>
+              <div className="text-sm font-medium mb-2">Paste the clause you want to negotiate</div>
               <Textarea
                 value={clause}
                 onChange={(e) => setClause(e.target.value)}
