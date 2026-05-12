@@ -30,16 +30,31 @@ export async function sendMessage(opts: {
     data: { sessionId: session.id, role: "USER", content: opts.content },
   });
 
-  // RAG retrieval (K=8, threshold 0.0 for mock, 0.7 for real)
-  const chunks = await semanticSearch({
-    userId: opts.userId,
-    query: opts.content,
-    k: 8,
-    scopeDocumentId: opts.scopeDocumentId,
-    includeDocuments: !opts.legalOnly,
-    includeLegalCorpus: true,
-    countryCode: "PK",
-  });
+  // RAG retrieval (K=8, threshold 0.0 for mock, 0.7 for real) plus user profile for personalization.
+  const [chunks, profile] = await Promise.all([
+    semanticSearch({
+      userId: opts.userId,
+      query: opts.content,
+      k: 8,
+      scopeDocumentId: opts.scopeDocumentId,
+      includeDocuments: !opts.legalOnly,
+      includeLegalCorpus: true,
+      countryCode: "PK",
+    }),
+    prisma.user.findUnique({
+      where: { id: opts.userId },
+      select: {
+        role: true,
+        organization: true,
+        jurisdiction: true,
+        persona: true,
+        practiceArea: true,
+        primaryUseCase: true,
+        preferredTone: true,
+        profileSummary: true,
+      },
+    }),
+  ]);
 
   const context = chunks
     .map(
@@ -58,6 +73,10 @@ export async function sendMessage(opts: {
 
   const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
     { role: "system", content: SYSTEM_PROMPT },
+    {
+      role: "system",
+      content: `USER WORKSPACE PROFILE:\n${profile?.profileSummary || "No setup profile saved yet."}\nRole: ${profile?.role || "USER"}\nOrganization: ${profile?.organization || "not set"}\nPrimary use case: ${profile?.primaryUseCase || "not set"}\nPreferred tone: ${profile?.preferredTone || "Detailed with citations"}\nIf the user is a lawyer, frame AI as preparation and evidence support while preserving counsel's judgment. If the user is not a lawyer, use plain language and suggest professional review for high-stakes actions.`,
+    },
     { role: "system", content: `RETRIEVED CONTEXT:\n${context || "(no documents indexed yet)"}` },
     ...history.map((h) => ({ role: h.role.toLowerCase() as "user" | "assistant", content: h.content })),
   ];

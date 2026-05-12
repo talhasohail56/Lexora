@@ -95,8 +95,8 @@ export const ROLE_REQUIREMENTS: Partial<Record<SubscriptionFeature, AppRole[]>> 
 export const DEFAULT_PLANS: DefaultPlan[] = [
   {
     code: "STARTER",
-    name: "Starter",
-    description: "For students and individuals testing core document workflows.",
+    name: "User Starter",
+    description: "For individuals, students, founders, and clients who need clear document answers without lawyer-only tools.",
     audienceRole: "USER",
     priceCents: 0,
     billingInterval: "MONTH",
@@ -126,8 +126,8 @@ export const DEFAULT_PLANS: DefaultPlan[] = [
   },
   {
     code: "PRO",
-    name: "Professional",
-    description: "Full individual workflow with compliance, comparison, timeline, and drafting.",
+    name: "User Professional",
+    description: "A complete client-side legal workspace for documents, RAG chat, compliance checks, comparison, timelines, and drafting.",
     audienceRole: "USER",
     priceCents: 1900,
     billingInterval: "MONTH",
@@ -170,7 +170,7 @@ export const DEFAULT_PLANS: DefaultPlan[] = [
   {
     code: "LAWYER_TRIAL",
     name: "Lawyer Trial",
-    description: "A 14-day lawyer workspace trial with annotations and advanced review.",
+    description: "A 14-day counsel-first workspace trial with annotations, review trails, and advanced legal analysis.",
     audienceRole: "LAWYER",
     priceCents: 0,
     billingInterval: "MONTH",
@@ -215,7 +215,7 @@ export const DEFAULT_PLANS: DefaultPlan[] = [
   {
     code: "LAWYER",
     name: "Lawyer Pro",
-    description: "For practicing lawyers who need review, annotations, and high-volume analysis.",
+    description: "For practicing lawyers who want faster review without surrendering professional judgment or client strategy.",
     audienceRole: "LAWYER",
     priceCents: 4900,
     billingInterval: "MONTH",
@@ -259,8 +259,8 @@ export const DEFAULT_PLANS: DefaultPlan[] = [
   },
   {
     code: "FIRM",
-    name: "Firm",
-    description: "Unlimited firm workspace with admin controls and team-wide legal AI access.",
+    name: "Firm / Admin",
+    description: "Unlimited firm workspace with admin controls, team access, and role-aware legal AI governance.",
     audienceRole: "ALL",
     priceCents: 14900,
     billingInterval: "MONTH",

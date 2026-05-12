@@ -7,7 +7,7 @@ export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const [statsRows, recent] = await Promise.all([
+  const [statsRows, recent, profile] = await Promise.all([
     prisma.$queryRaw<
       {
         docCount: number;
@@ -62,6 +62,19 @@ export default async function DashboardPage() {
       ORDER BY d."createdAt" DESC
       LIMIT 5
     `,
+    prisma.user.findUnique({
+      where: { id: session.userId },
+      select: {
+        role: true,
+        organization: true,
+        jurisdiction: true,
+        persona: true,
+        practiceArea: true,
+        primaryUseCase: true,
+        preferredTone: true,
+        profileSummary: true,
+      },
+    }),
   ]);
 
   const stats = statsRows[0] ?? { docCount: 0, avgRisk: 0, notifications: 0, chatSessions: 0 };
@@ -71,6 +84,7 @@ export default async function DashboardPage() {
       session={session}
       stats={stats}
       recent={recent.map((d) => ({ ...d, createdAt: d.createdAt.toISOString() }))}
+      profile={profile}
     />
   );
 }

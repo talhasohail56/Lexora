@@ -27,6 +27,13 @@ model User {
   otpExpiry    DateTime?
   barNumber    String?
   jurisdiction String?
+  onboardingComplete Boolean @default(false)
+  organization String?
+  persona      String?
+  practiceArea String?
+  primaryUseCase String?
+  preferredTone String?
+  profileSummary String?
   avatarUrl    String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

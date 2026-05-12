@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { FileText, MessageSquare, Bell, AlertCircle, ArrowUpRight, Plus, Sparkles, ScrollText, Shield, GitCompare } from "lucide-react";
+import { Briefcase, FileText, MessageSquare, Bell, AlertCircle, ArrowUpRight, Plus, Sparkles, ScrollText, Shield, GitCompare, UserRound } from "lucide-react";
 import { GlowCard } from "@/components/animated/glow-card";
 import { Stagger, StaggerItem } from "@/components/animated/scroll-reveal";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,31 @@ export function DashboardClient({
   session,
   stats,
   recent,
+  profile,
 }: {
   session: { name: string; role: string };
   stats: { docCount: number; avgRisk: number; notifications: number; chatSessions: number };
   recent: { id: string; name: string; status: string; risk: number; type: string; clauses: number; risks: number; createdAt: string }[];
+  profile: {
+    role: string;
+    organization: string | null;
+    jurisdiction: string | null;
+    persona: string | null;
+    practiceArea: string | null;
+    primaryUseCase: string | null;
+    preferredTone: string | null;
+    profileSummary: string | null;
+  } | null;
 }) {
   const router = useRouter();
+  const isLawyer = profile?.role === "LAWYER";
+  const profileHeadline = isLawyer
+    ? "Counsel-first workspace"
+    : "Context-aware legal workspace";
+  const profileMessage = isLawyer
+    ? "Lexora is tuned to support your preparation, citations, drafting scaffolds, and review work while your professional judgment stays in control."
+    : "Lexora is tuned around your matter, preferred language, and legal context so the workspace feels less generic and more useful.";
+  const ProfileIcon = isLawyer ? Briefcase : UserRound;
   const tiles = useMemo(() => [
     { icon: FileText,      label: "Documents",       value: stats.docCount,      href: "/documents",   color: "from-lex-500 to-cyan-500" },
     { icon: AlertCircle,   label: "Avg risk score",  value: stats.avgRisk,        suffix: "/100",       href: "/documents",   color: "from-amber-500 to-orange-500" },
@@ -69,8 +88,42 @@ export function DashboardClient({
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
             Good to see you, <span className="text-gradient">{session.name.split(" ")[0]}</span>.
           </h1>
-          <p className="mt-1 text-muted-foreground">Here is what is happening across your legal workspace.</p>
+          <p className="mt-1 text-muted-foreground">
+            {isLawyer
+              ? "Your judgment leads. Lexora keeps the research, draft work, and evidence trail moving."
+              : "Here is what is happening across your legal workspace."}
+          </p>
         </motion.div>
+
+        {profile ? (
+          <GlowCard className="relative overflow-hidden p-5">
+            <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-primary/10 to-transparent" />
+            <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-lex-500 to-amber-500 text-white shadow-glow">
+                  <ProfileIcon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="font-semibold">{profileHeadline}</h2>
+                    <Badge variant="outline">{profile.jurisdiction || "Pakistan"}</Badge>
+                    {profile.practiceArea ? <Badge variant="secondary">{profile.practiceArea}</Badge> : null}
+                  </div>
+                  <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">{profileMessage}</p>
+                  {profile.primaryUseCase ? (
+                    <p className="mt-2 text-sm">
+                      <span className="text-muted-foreground">Focus: </span>
+                      <span className="font-medium">{profile.primaryUseCase}</span>
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/settings">View profile</Link>
+              </Button>
+            </div>
+          </GlowCard>
+        ) : null}
 
         {/* Tiles */}
         <Stagger>

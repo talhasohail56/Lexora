@@ -48,41 +48,36 @@ export async function seedDefaultPlans() {
   if (planSeedPromise) return planSeedPromise;
 
   planSeedPromise = (async () => {
-    const expectedCodes = DEFAULT_PLANS.map((plan) => plan.code);
-    const existing = await prisma.plan.count({ where: { code: { in: expectedCodes } } });
-
-    if (existing < DEFAULT_PLANS.length) {
-      await Promise.all(
-        DEFAULT_PLANS.map((plan) =>
-          prisma.plan.upsert({
-            where: { code: plan.code },
-            update: {
-              name: plan.name,
-              description: plan.description,
-              audienceRole: plan.audienceRole,
-              priceCents: plan.priceCents,
-              billingInterval: plan.billingInterval,
-              features: JSON.stringify(plan.features),
-              limits: JSON.stringify(plan.limits),
-              isActive: true,
-              sortOrder: plan.sortOrder,
-            },
-            create: {
-              code: plan.code,
-              name: plan.name,
-              description: plan.description,
-              audienceRole: plan.audienceRole,
-              priceCents: plan.priceCents,
-              billingInterval: plan.billingInterval,
-              features: JSON.stringify(plan.features),
-              limits: JSON.stringify(plan.limits),
-              isActive: true,
-              sortOrder: plan.sortOrder,
-            },
-          })
-        )
-      );
-    }
+    await Promise.all(
+      DEFAULT_PLANS.map((plan) =>
+        prisma.plan.upsert({
+          where: { code: plan.code },
+          update: {
+            name: plan.name,
+            description: plan.description,
+            audienceRole: plan.audienceRole,
+            priceCents: plan.priceCents,
+            billingInterval: plan.billingInterval,
+            features: JSON.stringify(plan.features),
+            limits: JSON.stringify(plan.limits),
+            isActive: true,
+            sortOrder: plan.sortOrder,
+          },
+          create: {
+            code: plan.code,
+            name: plan.name,
+            description: plan.description,
+            audienceRole: plan.audienceRole,
+            priceCents: plan.priceCents,
+            billingInterval: plan.billingInterval,
+            features: JSON.stringify(plan.features),
+            limits: JSON.stringify(plan.limits),
+            isActive: true,
+            sortOrder: plan.sortOrder,
+          },
+        })
+      )
+    );
 
     plansSeeded = true;
   })().catch((error) => {

@@ -1,14 +1,34 @@
 import { Sidebar } from "@/components/layout/sidebar";
+import { OnboardingSetup } from "@/components/onboarding/setup-card";
 import { Topbar } from "@/components/layout/topbar";
 import { SubscriptionGate } from "@/components/subscription/subscription-gate";
 import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { getSubscriptionContext } from "@/lib/services/subscription-service";
 import { redirect } from "next/navigation";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
   if (!session) redirect("/login");
-  const subscription = await getSubscriptionContext(session.userId, session.role, { includeUsage: false });
+  const [subscription, profile] = await Promise.all([
+    getSubscriptionContext(session.userId, session.role, { includeUsage: false }),
+    prisma.user.findUnique({
+      where: { id: session.userId },
+      select: {
+        name: true,
+        email: true,
+        role: true,
+        onboardingComplete: true,
+        organization: true,
+        jurisdiction: true,
+        barNumber: true,
+        persona: true,
+        practiceArea: true,
+        primaryUseCase: true,
+        preferredTone: true,
+      },
+    }),
+  ]);
 
   return (
     <div className="min-h-screen flex bg-[linear-gradient(135deg,hsl(var(--background)),hsl(var(--background))_62%,hsl(var(--primary)/0.05))]">
@@ -22,6 +42,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <SubscriptionGate context={subscription}>{children}</SubscriptionGate>
         </main>
       </div>
+      {profile && profile.role !== "ADMIN" && !profile.onboardingComplete ? (
+        <OnboardingSetup profile={profile} />
+      ) : null}
     </div>
   );
 }
