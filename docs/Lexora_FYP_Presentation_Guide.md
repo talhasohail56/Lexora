@@ -399,11 +399,9 @@ The chat retrieves up to eight chunks and includes them in the system context.
 Implemented in:
 
 - `legal-corpus-service.ts`
-- `lib/legal/pakistan-corpus.ts`
-- `scripts/seed-pakistan-corpus.ts`
 - `scripts/ingest-pakistan-code.ts`
 
-The legal corpus allows Lexora to retrieve legal context from Pakistan-focused legal sources and cite source names in answers.
+The legal corpus allows Lexora to retrieve legal context from official Pakistan Code legal sources and cite source names in answers. The hand-written corpus fixture was removed so the active RAG index uses actual government source pages/PDF text only.
 
 ### 12.4 Why RAG Matters
 

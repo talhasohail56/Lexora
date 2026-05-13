@@ -11,7 +11,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx scripts/seed.ts",
     "db:seed:subscriptions": "tsx scripts/seed-subscriptions.ts",
-    "db:seed:pk": "tsx scripts/seed-pakistan-corpus.ts",
+    "db:seed:pk": "tsx scripts/ingest-pakistan-code.ts",
     "db:ingest:pk-code": "tsx scripts/ingest-pakistan-code.ts",
     "db:migrate:supabase": "tsx scripts/migrate-sqlite-to-postgres.ts",
     "db:studio": "prisma studio",

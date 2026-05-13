@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import { embed } from "@/lib/openai";
 import { cosineSimilarity, safeJson } from "@/lib/utils";
 
+const LEGAL_SEARCH_LIMIT = Number(process.env.PK_LEGAL_SEARCH_LIMIT || 20000);
+
 export type RetrievedLegalChunk = {
   type: "legal";
   sourceId: string;
@@ -40,7 +42,7 @@ export async function legalCorpusSearch(opts: {
         },
       },
     },
-    take: 2500,
+    take: LEGAL_SEARCH_LIMIT,
   });
 
   return rows

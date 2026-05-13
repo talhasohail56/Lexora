@@ -175,18 +175,22 @@ export async function createInitialSubscription(userId: string, role: string, re
 
 export async function ensureSubscriptionForUser(userId: string, role: string) {
   const current = await prisma.subscription.findFirst({
-    where: { userId, status: { in: ACTIVE_STATUSES } },
+    where: { userId },
     include: { plan: true },
-    orderBy: { currentPeriodEnd: "desc" },
+    orderBy: { updatedAt: "desc" },
   });
 
   if (current) {
-    if (current.currentPeriodEnd.getTime() < Date.now() && current.plan.code !== "STARTER") {
-      await prisma.subscription.update({
+    if (
+      ACTIVE_STATUSES.includes(current.status) &&
+      current.currentPeriodEnd.getTime() < Date.now() &&
+      current.plan.code !== "STARTER"
+    ) {
+      return prisma.subscription.update({
         where: { id: current.id },
         data: { status: "EXPIRED" },
+        include: { plan: true },
       });
-      return createInitialSubscription(userId, role);
     }
     return current;
   }

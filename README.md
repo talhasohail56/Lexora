@@ -41,7 +41,7 @@ npm install
 cp .env.example .env       # SQLite + dev secrets are already set
 npx prisma db push         # create the DB schema
 npm run db:seed            # seed demo users + sample documents
-npm run db:seed:pk         # index Pakistan legal corpus for RAG
+npm run db:seed:pk         # ingest official Pakistan Code sources for RAG
 npm run dev                # open http://localhost:3000
 ```
 
@@ -93,7 +93,7 @@ ai-paralegal-v2/
 │   └── schema.prisma             All 16 tables
 ├── scripts/
 │   ├── seed.ts                   Demo data
-│   └── seed-pakistan-corpus.ts   Pakistan legal RAG indexer
+│   └── ingest-pakistan-code.ts   Official Pakistan Code RAG indexer
 └── middleware.ts                 Route protection + RBAC
 ```
 
@@ -116,7 +116,7 @@ The app runs end-to-end **without any OpenAI key** — `lib/openai.ts` returns d
 
 ## Pakistan RAG corpus
 
-Run `npm run db:seed:pk` after `npx prisma db push`. It indexes 12 Pakistan-focused legal sources into `LegalSource` and `LegalCorpusChunk`, then merges those chunks into chat and semantic search. The `/library` page lists the indexed sources and links back to official source pages.
+Run `npm run db:seed:pk` after `npx prisma db push`. It discovers official Pakistan Code source pages, extracts text from their PDFs/pages, stores them in `LegalSource` and `LegalCorpusChunk`, then merges those chunks into chat and semantic search. The `/library` page lists the indexed sources and links back to official source pages. No hand-written or synthetic legal corpus is used.
 
 ## 📊 Mapping to the FYP report
 

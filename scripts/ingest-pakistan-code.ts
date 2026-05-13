@@ -6,9 +6,13 @@ import { chunkText } from "../lib/utils";
 const prisma = new PrismaClient();
 
 const BASE = "https://pakistancode.gov.pk/english";
-const TARGET_SOURCES = Number(process.env.PK_CODE_TARGET_SOURCES || 1000);
-const MAX_TEXT_CHARS = Number(process.env.PK_CODE_MAX_TEXT_CHARS || 20000);
-const MAX_CHUNKS_PER_SOURCE = Number(process.env.PK_CODE_MAX_CHUNKS_PER_SOURCE || 5);
+// Default to every official Pakistan Code source we can discover. Set PK_CODE_TARGET_SOURCES
+// only when intentionally creating a smaller local fixture.
+const TARGET_SOURCES = Number(process.env.PK_CODE_TARGET_SOURCES || 0);
+const MIN_SOURCES = Number(process.env.PK_CODE_MIN_SOURCES || 1000);
+const MIN_TEXT_CHARS = Number(process.env.PK_CODE_MIN_TEXT_CHARS || 350);
+const MAX_TEXT_CHARS = Number(process.env.PK_CODE_MAX_TEXT_CHARS || 60000);
+const MAX_CHUNKS_PER_SOURCE = Number(process.env.PK_CODE_MAX_CHUNKS_PER_SOURCE || 12);
 const DISCOVERY_CONCURRENCY = Number(process.env.PK_CODE_DISCOVERY_CONCURRENCY || 4);
 const PDF_CONCURRENCY = Number(process.env.PK_CODE_PDF_CONCURRENCY || 8);
 const EMBED_BATCH_SIZE = Number(process.env.PK_CODE_EMBED_BATCH_SIZE || 100);
@@ -21,6 +25,7 @@ type DiscoveredLaw = {
 type IngestedLaw = DiscoveredLaw & {
   pdfUrl?: string;
   text: string;
+  isIndexable: boolean;
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -113,7 +118,8 @@ async function discoverPakistanCodeLaws(): Promise<DiscoveredLaw[]> {
   for (const law of pages.flat()) {
     if (law.title && !byUrl.has(law.pageUrl)) byUrl.set(law.pageUrl, law);
   }
-  return [...byUrl.values()].slice(0, TARGET_SOURCES);
+  const laws = [...byUrl.values()];
+  return TARGET_SOURCES > 0 ? laws.slice(0, TARGET_SOURCES) : laws;
 }
 
 async function ingestOne(law: DiscoveredLaw, index: number): Promise<IngestedLaw> {
@@ -138,13 +144,14 @@ async function ingestOne(law: DiscoveredLaw, index: number): Promise<IngestedLaw
     }
 
     text = text.replace(/\s+/g, " ").trim().slice(0, MAX_TEXT_CHARS);
-    return { ...law, title, pdfUrl, text };
+    if (text.length < MIN_TEXT_CHARS) {
+      console.warn(`No indexable text for source ${index + 1}: ${title} (${text.length} chars)`);
+      return { ...law, title, pdfUrl, text: "", isIndexable: false };
+    }
+    return { ...law, title, pdfUrl, text, isIndexable: true };
   } catch (error) {
     console.warn(`Source failed ${index + 1}: ${law.title}: ${(error as Error).message}`);
-    return {
-      ...law,
-      text: `${law.title}. Pakistan Code source page: ${law.pageUrl}`,
-    };
+    return { ...law, text: "", isIndexable: false };
   }
 }
 
@@ -155,17 +162,13 @@ function sourceTypeForTitle(title: string) {
 }
 
 async function main() {
-  console.log(`Discovering ${TARGET_SOURCES} real Pakistan Code sources...`);
+  console.log(
+    `Discovering ${TARGET_SOURCES > 0 ? TARGET_SOURCES : "all"} official Pakistan Code sources...`
+  );
   const laws = await discoverPakistanCodeLaws();
   console.log(`Discovered ${laws.length} unique Pakistan Code law pages.`);
-
-  const existing = await prisma.legalSource.findMany({
-    where: { countryCode: "PK" },
-    select: { id: true },
-  });
-  if (existing.length) {
-    await prisma.legalCorpusChunk.deleteMany({ where: { sourceId: { in: existing.map((s) => s.id) } } });
-    await prisma.legalSource.deleteMany({ where: { countryCode: "PK" } });
+  if (laws.length < MIN_SOURCES) {
+    throw new Error(`Expected at least ${MIN_SOURCES} official legal sources; discovered ${laws.length}.`);
   }
 
   const ingested = await mapLimit(laws, PDF_CONCURRENCY, async (law, index) => {
@@ -175,6 +178,17 @@ async function main() {
     }
     return result;
   });
+  const indexableCount = ingested.filter((law) => law.isIndexable).length;
+  console.log(`Official sources: ${ingested.length}. Sources with extracted text chunks: ${indexableCount}.`);
+
+  const existing = await prisma.legalSource.findMany({
+    where: { countryCode: "PK" },
+    select: { id: true },
+  });
+  if (existing.length) {
+    await prisma.legalCorpusChunk.deleteMany({ where: { sourceId: { in: existing.map((s) => s.id) } } });
+    await prisma.legalSource.deleteMany({ where: { countryCode: "PK" } });
+  }
 
   const sources = ingested.map((law, index) => ({
     id: `pk-code-${String(index + 1).padStart(4, "0")}`,
@@ -187,13 +201,16 @@ async function main() {
     officialUrl: law.pageUrl,
     effectiveDate: undefined,
     lastReviewedAt: new Date(),
-    summary: `Official Pakistan Code source. ${law.pdfUrl ? `PDF: ${law.pdfUrl}` : "PDF link not found; page text indexed."}`,
+    summary: law.isIndexable
+      ? `Official Pakistan Code source. ${law.pdfUrl ? `PDF: ${law.pdfUrl}` : "PDF link not found; page text indexed."}`
+      : "Official Pakistan Code source entry. Full text was not available from the source page during ingestion, so no RAG chunk was generated.",
     tags: JSON.stringify(["Pakistan Code", "federal law", sourceTypeForTitle(law.title).toLowerCase()]),
   }));
 
   await prisma.legalSource.createMany({ data: sources });
 
   const pendingChunks = ingested.flatMap((law, sourceIndex) => {
+    if (!law.isIndexable || !law.text.trim()) return [];
     const chunks = chunkText(law.text, 700, 80).slice(0, MAX_CHUNKS_PER_SOURCE);
     const normalizedChunks = chunks.length ? chunks : [law.text || law.title];
     return normalizedChunks.map((chunk, chunkIndex) => ({

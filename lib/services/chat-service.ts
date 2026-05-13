@@ -30,12 +30,12 @@ export async function sendMessage(opts: {
     data: { sessionId: session.id, role: "USER", content: opts.content },
   });
 
-  // RAG retrieval (K=8, threshold 0.0 for mock, 0.7 for real) plus user profile for personalization.
+  // RAG retrieval plus user profile for personalization.
   const [chunks, profile] = await Promise.all([
     semanticSearch({
       userId: opts.userId,
       query: opts.content,
-      k: 8,
+      k: 12,
       scopeDocumentId: opts.scopeDocumentId,
       includeDocuments: !opts.legalOnly,
       includeLegalCorpus: true,
@@ -81,7 +81,7 @@ export async function sendMessage(opts: {
     ...history.map((h) => ({ role: h.role.toLowerCase() as "user" | "assistant", content: h.content })),
   ];
 
-  const response = await chatComplete(messages, { temperature: 0.3, max_tokens: 1024 });
+  const response = await chatComplete(messages, { temperature: 0.3, max_tokens: 1400 });
 
   const assistantMsg = await prisma.chatMessage.create({
     data: {
