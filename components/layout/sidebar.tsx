@@ -74,11 +74,20 @@ export function Sidebar({
   const path = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
+  const visibleSections = sections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => !item.admin || role === "ADMIN"),
+    }))
+    .filter((section) => section.items.length);
+  const mobileItems = visibleSections.flatMap((section) => section.items);
+
   return (
+    <>
     <motion.aside
       animate={{ width: collapsed ? 72 : 256 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="relative h-screen sticky top-0 shrink-0 border-r border-border/80 bg-card/[0.88] backdrop-blur-xl flex flex-col"
+      className="relative sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border/80 bg-card/[0.88] backdrop-blur-xl lg:flex"
     >
       <div className="flex items-center gap-2.5 px-4 py-4 border-b border-border h-16">
         <div className="relative h-8 w-8 shrink-0">
@@ -97,9 +106,7 @@ export function Sidebar({
         )}
       </div>
       <nav className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin space-y-4">
-        {sections.map((section) => {
-          const items = section.items.filter((i) => !i.admin || role === "ADMIN");
-          if (!items.length) return null;
+        {visibleSections.map((section) => {
           return (
             <div key={section.heading}>
               {!collapsed && (
@@ -108,7 +115,7 @@ export function Sidebar({
                 </p>
               )}
               <ul className="space-y-0.5">
-                {items.map((item) => {
+                {section.items.map((item) => {
                   const active = path === item.href || (item.href !== "/dashboard" && path.startsWith(item.href));
                   const Icon = item.icon;
                   const feature = featureForPath(item.href);
@@ -154,5 +161,32 @@ export function Sidebar({
         {!collapsed && "Collapse"}
       </button>
     </motion.aside>
+    <nav className="fixed inset-x-2 bottom-2 z-40 rounded-2xl border border-border/80 bg-card/95 shadow-2xl backdrop-blur-xl lg:hidden">
+      <div className="flex gap-1 overflow-x-auto px-2 py-2 no-scrollbar">
+        {mobileItems.map((item) => {
+          const active = path === item.href || (item.href !== "/dashboard" && path.startsWith(item.href));
+          const Icon = item.icon;
+          const feature = featureForPath(item.href);
+          const locked = subscription ? !canUseFeature(subscription, feature) : false;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "relative flex min-w-[4.65rem] flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[10px] font-medium transition-colors",
+                active
+                  ? "bg-[linear-gradient(135deg,hsl(var(--primary)/0.16),hsl(var(--accent-warm)/0.14))] text-foreground"
+                  : "text-muted-foreground hover:bg-accent/70 hover:text-foreground"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              <span className="max-w-[4rem] truncate">{item.label.replace("Semantic ", "")}</span>
+              {locked && <Lock className="absolute right-1 top-1 h-3 w-3 opacity-60" />}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+    </>
   );
 }

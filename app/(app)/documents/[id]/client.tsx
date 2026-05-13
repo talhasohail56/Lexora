@@ -125,17 +125,17 @@ export function DocumentDetailClient({
               {doc.documentType} · {formatBytes(doc.fileSize)} · uploaded {formatRelative(doc.createdAt)}
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" asChild>
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
+            <Button variant="outline" asChild className="w-full sm:w-auto">
               <a href={`/api/documents/${doc.id}/download`}><Download className="h-4 w-4" /> Download</a>
             </Button>
-            <Button variant="outline" onClick={speakBrief}><Volume2 className="h-4 w-4" /> Voice brief</Button>
-            <Button variant="outline" onClick={runCompliance} disabled={running}><Shield className="h-4 w-4" /> Run compliance</Button>
-            <Button variant="outline" onClick={extractTimeline} disabled={running}><Clock className="h-4 w-4" /> Extract timeline</Button>
-            <Button variant="outline" onClick={reanalyze} disabled={running}>
+            <Button variant="outline" onClick={speakBrief} className="w-full sm:w-auto"><Volume2 className="h-4 w-4" /> Voice brief</Button>
+            <Button variant="outline" onClick={runCompliance} disabled={running} className="w-full sm:w-auto"><Shield className="h-4 w-4" /> Run compliance</Button>
+            <Button variant="outline" onClick={extractTimeline} disabled={running} className="w-full sm:w-auto"><Clock className="h-4 w-4" /> Extract timeline</Button>
+            <Button variant="outline" onClick={reanalyze} disabled={running} className="w-full sm:w-auto">
               <RefreshCw className={`h-4 w-4 ${running ? "animate-spin" : ""}`} /> Re-analyze
             </Button>
-            <Button variant="gradient" asChild>
+            <Button variant="gradient" asChild className="w-full sm:w-auto">
               <Link href={`/chat?document=${doc.id}`}><MessageSquare className="h-4 w-4" /> Ask AI</Link>
             </Button>
           </div>
@@ -143,7 +143,7 @@ export function DocumentDetailClient({
 
         {/* Hero stats */}
         <Stagger>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[430px]:grid-cols-2 md:grid-cols-4">
             {[
               { label: "Risk score", value: Math.round(doc.riskScore || 0), suffix: "/100", icon: AlertTriangle, color: "from-red-500 to-orange-500" },
               { label: "Clauses",    value: doc.clauses.length,             icon: FileText,      color: "from-lex-500 to-cyan-500" },
@@ -176,7 +176,7 @@ export function DocumentDetailClient({
 
         {/* Tabs */}
         <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="grid grid-cols-7 w-full max-w-3xl">
+          <TabsList className="flex w-full max-w-full justify-start overflow-x-auto no-scrollbar sm:grid sm:max-w-3xl sm:grid-cols-7">
             <TabsTrigger value="summary">Summary</TabsTrigger>
             <TabsTrigger value="clauses">Clauses</TabsTrigger>
             <TabsTrigger value="risks">Risks</TabsTrigger>
@@ -187,18 +187,18 @@ export function DocumentDetailClient({
           </TabsList>
 
           <TabsContent value="summary">
-            <GlowCard className="p-6">
-              <div className="flex items-center justify-between mb-3">
+            <GlowCard className="p-4 sm:p-6">
+              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="font-semibold flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-lex-500" /> Executive summary
                 </h3>
-                <Button size="sm" variant="ghost" onClick={speakBrief}><Volume2 className="h-3.5 w-3.5" /> Listen</Button>
+                <Button size="sm" variant="ghost" onClick={speakBrief} className="w-full sm:w-auto"><Volume2 className="h-3.5 w-3.5" /> Listen</Button>
               </div>
               <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">
                 {doc.summary || "No summary yet — re-run analysis to generate one."}
               </p>
               <Separator className="my-4" />
-              <div className="grid grid-cols-4 gap-3 text-center">
+              <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
                 {(["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const).map((sev) => (
                   <div key={sev} className={`rounded-lg border ${severityColor(sev)} p-3`}>
                     <div className="text-2xl font-bold">{sevCounts[sev] || 0}</div>
@@ -225,7 +225,7 @@ export function DocumentDetailClient({
             ) : (
               doc.risks.map((r: any) => (
                 <GlowCard key={r.id} className={`p-4 border ${severityColor(r.severity)}`}>
-                  <div className="flex items-start gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                     <Badge variant="outline" className={severityColor(r.severity)}>{r.severity}</Badge>
                     <div className="flex-1">
                       <h4 className="font-medium">{r.category}</h4>
@@ -393,7 +393,7 @@ function DocumentSharePanel({
       {shares.length ? (
         <div className="grid gap-2 md:grid-cols-2">
           {shares.map((share) => (
-            <div key={share.id} className="flex items-center gap-3 rounded-xl border bg-background/60 p-3">
+            <div key={share.id} className="flex flex-wrap items-center gap-3 rounded-xl border bg-background/60 p-3 sm:flex-nowrap">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-lex-500 to-amber-500 text-xs font-semibold text-white">
                 {share.sharedWith.avatarUrl ? (
                   <img src={share.sharedWith.avatarUrl} alt={`${share.sharedWith.name} profile`} className="h-full w-full object-cover" />
@@ -437,7 +437,7 @@ function ClauseCard({ clause }: { clause: any }) {
 
   return (
     <GlowCard className="p-4">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1">
           <Badge variant="info" className="mb-2">{clause.clauseType}</Badge>
           <p className="text-sm leading-relaxed">{clause.text}</p>
@@ -474,7 +474,7 @@ function ClauseHeatmap({ doc }: { doc: any }) {
       <p className="text-xs text-muted-foreground mb-4">
         Each cell represents a contract segment; intensity reflects detected risk severity.
       </p>
-      <div className="grid grid-cols-12 gap-1.5">
+      <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-12">
         {cells.map((c, i) => (
           <motion.div
             key={i}

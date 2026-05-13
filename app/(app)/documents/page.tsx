@@ -27,18 +27,18 @@ export default async function DocumentsPage() {
   return (
     <PageTransition>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">My documents</h1>
             <p className="text-muted-foreground">All your uploaded contracts and analyses.</p>
           </div>
-          <Button variant="gradient" asChild>
+          <Button variant="gradient" asChild className="w-full sm:w-auto">
             <Link href="/documents/upload"><Plus className="h-4 w-4" /> Upload</Link>
           </Button>
         </div>
 
         {docs.length === 0 ? (
-          <GlowCard className="p-16 text-center">
+          <GlowCard className="p-8 text-center sm:p-16">
             <div className="mx-auto h-16 w-16 rounded-2xl bg-gradient-to-br from-lex-500/20 to-amber-500/20 flex items-center justify-center mb-4">
               <FileText className="h-7 w-7 text-lex-500" />
             </div>
@@ -46,7 +46,7 @@ export default async function DocumentsPage() {
             <p className="text-sm text-muted-foreground mt-1 mb-6 max-w-md mx-auto">
               Upload your first contract to get started with AI analysis, risk scoring, and semantic search.
             </p>
-            <Button variant="gradient" asChild>
+            <Button variant="gradient" asChild className="w-full sm:w-auto">
               <Link href="/documents/upload"><Plus className="h-4 w-4" /> Upload a document</Link>
             </Button>
           </GlowCard>
@@ -54,14 +54,14 @@ export default async function DocumentsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {docs.map((d) => (
               <Link key={d.id} href={`/documents/${d.id}`}>
-                <GlowCard className="p-5 h-full transition-all hover:scale-[1.01]">
+                <GlowCard className="h-full p-4 transition-all hover:scale-[1.01] sm:p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-lex-500/20 to-amber-500/20 flex items-center justify-center">
                       <FileText className="h-4 w-4 text-lex-500" />
                     </div>
                     <StatusBadge status={d.status} />
                   </div>
-                  <div className="font-medium text-sm truncate" title={d.originalName}>
+                  <div className="break-words text-sm font-medium" title={d.originalName}>
                     {d.originalName}
                   </div>
                   {d.userId !== session.userId && (
@@ -82,7 +82,7 @@ export default async function DocumentsPage() {
                         <span className="font-medium">{Math.round(d.riskScore || 0)}/100</span>
                       </div>
                       <Progress value={d.riskScore || 0} />
-                      <div className="mt-3 flex gap-2 text-[11px] text-muted-foreground">
+                      <div className="mt-3 flex flex-wrap gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
                         <span>{d._count.clauses} clauses</span>
                         <span>·</span>
                         <span>{d._count.risks} risks</span>

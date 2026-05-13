@@ -48,7 +48,7 @@ export default function Landing() {
   return (
     <main
       ref={scrollerRef}
-      className="h-screen snap-y snap-mandatory overflow-y-auto scroll-smooth overscroll-y-contain bg-[#080806] text-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="h-svh snap-y snap-mandatory overflow-y-auto scroll-smooth overscroll-y-contain bg-[#080806] text-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <FixedNav />
       <ScrollRail progress={progress} />
@@ -74,7 +74,7 @@ export default function Landing() {
             initial={{ opacity: 0, y: 22, filter: "blur(10px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 max-w-6xl text-6xl font-semibold leading-none md:text-8xl lg:text-9xl"
+            className="relative z-10 max-w-6xl text-5xl font-semibold leading-none sm:text-6xl md:text-8xl lg:text-9xl"
           >
             Powered by AI
             <sup className="ml-2 align-super text-sm font-medium text-white/[0.48] md:text-base">LEXORA</sup>
@@ -102,7 +102,7 @@ export default function Landing() {
               transition={{ duration: 0.55 }}
             >
               <p className="mb-5 text-xs text-[#140d08]/[0.58]">WHAT THE MODEL READS FIRST</p>
-              <h2 className="max-w-3xl text-6xl font-semibold leading-none md:text-8xl">
+              <h2 className="max-w-3xl text-5xl font-semibold leading-none sm:text-6xl md:text-8xl">
                 Documents that answer back.
               </h2>
               <p className="mt-6 max-w-md text-sm leading-6 text-[#140d08]/[0.64] md:text-base">
@@ -128,7 +128,7 @@ export default function Landing() {
             className="mx-auto max-w-6xl text-center"
           >
             <p className="mb-4 text-xs text-teal-200/[0.72]">RETRIEVAL LAYER</p>
-            <h2 className="text-5xl font-semibold leading-none md:text-8xl">
+            <h2 className="text-4xl font-semibold leading-none sm:text-5xl md:text-8xl">
               Context moves before the answer.
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-sm leading-6 text-white/[0.52]">
@@ -165,7 +165,7 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: false, amount: 0.55 }}
                 transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
-                className="max-w-5xl text-5xl font-semibold leading-none sm:text-6xl md:text-8xl lg:text-9xl"
+                className="max-w-5xl text-4xl font-semibold leading-none sm:text-6xl md:text-8xl lg:text-9xl"
               >
                 jurisdiction with receipts.
               </motion.h2>
@@ -197,7 +197,7 @@ export default function Landing() {
               transition={{ duration: 0.55 }}
             >
               <p className="mb-3 text-xs text-white/[0.72]">CONTRACT INTELLIGENCE</p>
-              <h2 className="max-w-5xl text-6xl font-semibold leading-none md:text-8xl lg:text-9xl">
+              <h2 className="max-w-5xl text-5xl font-semibold leading-none sm:text-6xl md:text-8xl lg:text-9xl">
                 Risk is no longer hidden in paragraph seven.
               </h2>
             </motion.div>
@@ -212,7 +212,7 @@ export default function Landing() {
         <div className="relative z-10 flex min-h-[100svh] items-center px-5 py-24 md:px-10">
           <div className="mx-auto max-w-6xl text-center">
             <p className="mb-4 text-xs text-teal-300">THE PART THAT ACTUALLY MADE IT WORK</p>
-            <h2 className="text-5xl font-semibold leading-none md:text-8xl">
+            <h2 className="text-4xl font-semibold leading-none sm:text-5xl md:text-8xl">
               It looks expensive because the context is real.
             </h2>
             <AccessCardFan />
@@ -222,7 +222,7 @@ export default function Landing() {
               <Proof icon={ShieldCheck} title="Compliance" text="Rule checks, LLM review and audit trail." />
             </div>
             <div className="mt-10 flex flex-wrap justify-center gap-3">
-              <Button asChild size="lg" className="bg-white text-[#090c09] hover:bg-white/90">
+              <Button asChild size="lg" className="w-full bg-white text-[#090c09] hover:bg-white/90 min-[420px]:w-auto">
                 <Link href="/register">
                   Open the demo <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -231,7 +231,7 @@ export default function Landing() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="border-white/[0.16] bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                className="w-full border-white/[0.16] bg-white/5 text-white hover:bg-white/10 hover:text-white min-[420px]:w-auto"
               >
                 <Link href="/login">Sign in</Link>
               </Button>
@@ -408,19 +408,19 @@ function JurisdictionSignal() {
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: false, amount: 0.42 }}
       transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
-      className="relative mx-auto h-[520px] w-full max-w-[540px]"
+      className="relative mx-auto h-[430px] w-full max-w-[540px] sm:h-[520px]"
     >
       <div className="absolute inset-0 rounded-lg border border-white/[0.1] bg-white/[0.035] shadow-[0_38px_130px_rgba(0,0,0,0.32)]" />
       <div className="absolute inset-6 rounded-lg border border-white/[0.06]" />
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
-        className="absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full border border-teal-200/[0.22]"
+        className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full border border-teal-200/[0.22] sm:h-80 sm:w-80"
       />
       <motion.div
         animate={{ rotate: -360 }}
         transition={{ repeat: Infinity, duration: 22, ease: "linear" }}
-        className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full border border-amber-200/[0.24]"
+        className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full border border-amber-200/[0.24] sm:h-56 sm:w-56"
       />
       <div className="absolute left-1/2 top-1/2 h-px w-[82%] -translate-x-1/2 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.32),transparent)]" />
       <div className="absolute left-1/2 top-[10%] h-[80%] w-px bg-[linear-gradient(180deg,transparent,rgba(255,255,255,0.28),transparent)]" />
@@ -428,11 +428,11 @@ function JurisdictionSignal() {
       <motion.div
         animate={{ scale: [1, 1.035, 1] }}
         transition={{ repeat: Infinity, duration: 4.4, ease: "easeInOut" }}
-        className="absolute left-1/2 top-1/2 w-48 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-white/[0.14] bg-[#0b120f]/90 p-5 text-center backdrop-blur-md"
+        className="absolute left-1/2 top-1/2 w-40 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-white/[0.14] bg-[#0b120f]/90 p-4 text-center backdrop-blur-md sm:w-48 sm:p-5"
       >
         <Landmark className="mx-auto mb-5 h-7 w-7 text-amber-200" />
         <p className="text-xs text-white/[0.42]">primary corpus</p>
-        <h3 className="mt-1 text-2xl font-semibold">Pakistan Code</h3>
+        <h3 className="mt-1 text-xl font-semibold sm:text-2xl">Pakistan Code</h3>
       </motion.div>
 
       {nodes.map((node, index) => (
@@ -441,10 +441,10 @@ function JurisdictionSignal() {
           style={{ left: node.x, top: node.y }}
           animate={{ y: [0, -8, 0], opacity: [0.78, 1, 0.78] }}
           transition={{ repeat: Infinity, duration: 4.2 + index * 0.55, delay: index * 0.22, ease: "easeInOut" }}
-          className="absolute w-36 rounded-lg border border-white/[0.1] bg-white/[0.065] p-3 backdrop-blur-md"
+          className="absolute w-28 rounded-lg border border-white/[0.1] bg-white/[0.065] p-2 backdrop-blur-md sm:w-36 sm:p-3"
         >
           <div className="mb-6 h-1.5 w-10 rounded-full bg-teal-200/70" />
-          <h4 className="text-sm font-semibold">{node.title}</h4>
+          <h4 className="text-xs font-semibold sm:text-sm">{node.title}</h4>
           <p className="mt-1 text-xs text-white/[0.42]">{node.detail}</p>
         </motion.div>
       ))}
@@ -562,7 +562,7 @@ function RiskDevice() {
       whileInView={{ opacity: 1, y: 0, rotate: 0 }}
       viewport={{ once: false, amount: 0.5 }}
       transition={{ duration: 0.62 }}
-      className="relative mx-auto h-[520px] w-full max-w-[460px]"
+      className="relative mx-auto h-[430px] w-full max-w-[460px] sm:h-[520px]"
     >
       <div className="absolute inset-x-7 bottom-4 h-16 rounded-[50%] bg-black/[0.28] blur-2xl" />
       <div className="absolute inset-0 rounded-lg border border-white/[0.26] bg-[#150705] p-3 shadow-[0_38px_130px_rgba(0,0,0,0.42)]">
@@ -572,11 +572,11 @@ function RiskDevice() {
           <span className="h-2 w-2 rounded-full bg-emerald-300" />
           <span className="ml-auto text-xs text-white/[0.36]">clause-risk.lexora</span>
         </div>
-        <div className="relative h-[455px] overflow-hidden rounded-b-md bg-[#f6eee0] text-[#180b06]">
+        <div className="relative h-[365px] overflow-hidden rounded-b-md bg-[#f6eee0] text-[#180b06] sm:h-[455px]">
           <div className="absolute inset-x-0 top-0 h-28 bg-[#d71911]" />
           <div className="relative z-10 p-6">
             <p className="text-xs text-white/80">RISK DETECTION</p>
-            <h3 className="mt-2 text-5xl font-semibold leading-none text-white">Liability cap</h3>
+            <h3 className="mt-2 text-4xl font-semibold leading-none text-white sm:text-5xl">Liability cap</h3>
           </div>
           <div className="absolute left-6 right-6 top-40 rounded-md border border-[#dbcab4] bg-white p-5 shadow-xl">
             <div className="flex items-start gap-3">

@@ -158,7 +158,7 @@ export default function AdminUsersPage() {
   return (
     <PageTransition>
       <div className="space-y-6 max-w-[1500px]">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <Users className="h-7 w-7 text-lex-500" /> User management
@@ -167,7 +167,7 @@ export default function AdminUsersPage() {
               Full admin control for role, account status, plan, subscription state and profile data.
             </p>
           </div>
-          <Badge variant="gradient" className="gap-2">
+          <Badge variant="gradient" className="w-fit gap-2">
             <ShieldCheck className="h-3.5 w-3.5" />
             {users.length} accounts
           </Badge>
@@ -184,7 +184,7 @@ export default function AdminUsersPage() {
                 className="pl-9"
               />
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               {["ALL", ...roles].map((r) => (
                 <Button key={r} variant={roleFilter === r ? "default" : "outline"} size="sm" onClick={() => setRoleFilter(r)}>
                   {r}
@@ -362,7 +362,7 @@ export default function AdminUsersPage() {
               />
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
             <Button
               type="button"
               variant={draft.isVerified ? "secondary" : "outline"}
@@ -378,11 +378,11 @@ export default function AdminUsersPage() {
               {draft.onboardingComplete ? "Onboarding complete" : "Needs onboarding"}
             </Button>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)}>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={() => setEditing(null)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={saveProfile} disabled={!editing || savingId === editing.id}>
+            <Button onClick={saveProfile} disabled={!editing || savingId === editing.id} className="w-full sm:w-auto">
               {editing && savingId === editing.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
               Save changes
             </Button>

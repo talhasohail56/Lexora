@@ -37,7 +37,7 @@ export default function AdminRulesPage() {
   return (
     <PageTransition>
       <div className="space-y-6 max-w-6xl">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <Gavel className="h-7 w-7 text-lex-500" /> Compliance rules
@@ -45,13 +45,13 @@ export default function AdminRulesPage() {
             <p className="text-muted-foreground">{rules.length} active rules</p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button variant="gradient"><Plus className="h-4 w-4" /> New rule</Button></DialogTrigger>
+            <DialogTrigger asChild><Button variant="gradient" className="w-full sm:w-auto"><Plus className="h-4 w-4" /> New rule</Button></DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>Create compliance rule</DialogTitle></DialogHeader>
               <div className="space-y-3">
                 <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. NDA Confidentiality Period" /></div>
                 <div><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <Label>Category</Label>
                     <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
@@ -72,7 +72,7 @@ export default function AdminRulesPage() {
                   </div>
                 </div>
                 <div><Label>Regex pattern (optional)</Label><Input value={form.rulePattern} onChange={(e) => setForm({ ...form, rulePattern: e.target.value })} placeholder="e.g. confidential(ity)?" className="font-mono text-xs" /></div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                   <input type="checkbox" id="llm" checked={form.requiresLLM} onChange={(e) => setForm({ ...form, requiresLLM: e.target.checked })} />
                   <Label htmlFor="llm" className="cursor-pointer">Requires LLM evaluation (Phase 2)</Label>
                 </div>

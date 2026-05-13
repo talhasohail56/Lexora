@@ -180,7 +180,7 @@ export function DashboardClient({
           </GlowCard>
 
           <GlowCard className="p-6 lg:col-span-2">
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm font-medium">Quick actions</div>
               <Badge variant="outline">⌘K for everything</Badge>
             </div>
@@ -211,7 +211,7 @@ export function DashboardClient({
 
         {/* Recent docs */}
         <GlowCard className="p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-semibold">Recent documents</h2>
               <p className="text-xs text-muted-foreground">Your last 5 uploads</p>
@@ -237,7 +237,7 @@ export function DashboardClient({
                 <Link
                   key={d.id}
                   href={`/documents/${d.id}`}
-                  className="flex items-center gap-4 py-3 hover:bg-accent/30 -mx-3 px-3 rounded-md transition-colors group"
+                  className="-mx-3 flex items-start gap-3 rounded-md px-3 py-3 transition-colors hover:bg-accent/30 sm:items-center sm:gap-4 group"
                 >
                   <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-lex-500/15 to-amber-500/15 flex items-center justify-center shrink-0">
                     <FileText className="h-4 w-4 text-lex-500" />
@@ -260,7 +260,7 @@ export function DashboardClient({
                       <Badge variant="outline" className="text-xs">{d.status}</Badge>
                     )}
                   </div>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 sm:mt-0" />
                 </Link>
               ))}
             </div>

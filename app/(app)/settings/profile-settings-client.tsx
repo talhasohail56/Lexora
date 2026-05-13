@@ -168,12 +168,12 @@ export function ProfileSettingsClient({
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[2rem] border bg-[#0c0b08] p-6 text-white shadow-2xl md:p-8"
+          className="relative overflow-hidden rounded-[1.5rem] border bg-[#0c0b08] p-5 text-white shadow-2xl sm:rounded-[2rem] md:p-8"
         >
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.07)_1px,transparent_1px)] bg-[size:48px_48px] opacity-40" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(140,240,218,0.20),transparent_30%),radial-gradient(circle_at_88%_12%,rgba(214,122,45,0.24),transparent_35%)]" />
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex items-start gap-5">
+            <div className="flex flex-col gap-4 min-[460px]:flex-row min-[460px]:items-start sm:gap-5">
               <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-white/[0.08] text-2xl font-bold shadow-[0_20px_80px_rgba(0,0,0,0.32)]">
                 {profile.avatarUrl ? (
                   <img src={profile.avatarUrl} alt={`${profile.name} profile picture`} className="h-full w-full object-cover" />
@@ -186,11 +186,11 @@ export function ProfileSettingsClient({
                   <Icon className="h-4 w-4" />
                   {roleCopy.eyebrow}
                 </div>
-                <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-5xl">{profile.name}</h1>
+                <h1 className="max-w-3xl break-words text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">{profile.name}</h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-white/55">{roleCopy.title}</p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Badge className="border-white/10 bg-white/[0.08] text-white hover:bg-white/[0.08]">
                 {profile.role}
               </Badge>
@@ -200,7 +200,7 @@ export function ProfileSettingsClient({
               <Button
                 type="button"
                 onClick={() => (editing ? setEditing(false) : openEditor())}
-                className="rounded-full bg-white text-[#080806] hover:bg-white/90"
+                className="w-full rounded-full bg-white text-[#080806] hover:bg-white/90 sm:w-auto"
               >
                 <Edit3 className="h-4 w-4" />
                 {editing ? "Close editor" : "Edit profile"}
@@ -211,8 +211,8 @@ export function ProfileSettingsClient({
 
         <div className="grid gap-6 lg:grid-cols-[1fr_0.76fr]">
           <section className="space-y-6">
-            <form onSubmit={save} className="rounded-2xl border bg-card p-6 shadow-soft">
-              <div className="mb-5 flex items-center gap-2">
+            <form onSubmit={save} className="rounded-2xl border bg-card p-4 shadow-soft sm:p-6">
+              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Sparkles className="h-5 w-5 text-lex-500" />
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold">{editing ? "Edit workspace identity" : "Workspace identity"}</h2>
@@ -221,17 +221,17 @@ export function ProfileSettingsClient({
                   ) : null}
                 </div>
                 {editing ? (
-                  <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={() => setEditing(false)}>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button type="button" variant="outline" onClick={() => setEditing(false)} className="w-full sm:w-auto">
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={saving}>
+                    <Button type="submit" disabled={saving} className="w-full sm:w-auto">
                       {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                       Save
                     </Button>
                   </div>
                 ) : (
-                  <Button type="button" variant="outline" onClick={openEditor}>
+                  <Button type="button" variant="outline" onClick={openEditor} className="w-full sm:w-auto">
                     <Edit3 className="h-4 w-4" />
                     Edit
                   </Button>
@@ -257,7 +257,7 @@ export function ProfileSettingsClient({
                           readOnly={formAvatarIsUpload}
                           placeholder="Paste an image URL, or upload one below"
                         />
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                           <label className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent">
                             <Camera className="h-4 w-4" />
                             Upload image
@@ -269,7 +269,7 @@ export function ProfileSettingsClient({
                             />
                           </label>
                           {form.avatarUrl ? (
-                            <Button type="button" variant="outline" size="sm" onClick={() => setForm({ ...form, avatarUrl: "" })}>
+                            <Button type="button" variant="outline" size="sm" onClick={() => setForm({ ...form, avatarUrl: "" })} className="w-full sm:w-auto">
                               Remove
                             </Button>
                           ) : null}

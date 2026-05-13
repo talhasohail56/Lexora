@@ -32,14 +32,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   ]);
 
   return (
-    <div className="min-h-screen flex bg-[linear-gradient(135deg,hsl(var(--background)),hsl(var(--background))_62%,hsl(var(--primary)/0.05))]">
+    <div className="flex min-h-svh bg-[linear-gradient(135deg,hsl(var(--background)),hsl(var(--background))_62%,hsl(var(--primary)/0.05))]">
       <Sidebar role={session.role} subscription={subscription} />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar
           user={{ name: profile?.name ?? session.name, email: session.email, role: session.role, avatarUrl: profile?.avatarUrl }}
           subscription={subscription}
         />
-        <main className="flex-1 p-8 overflow-x-hidden">
+        <main className="flex-1 overflow-x-hidden p-4 pb-24 sm:p-6 sm:pb-24 lg:p-8 lg:pb-8">
           <SubscriptionGate context={subscription}>{children}</SubscriptionGate>
         </main>
       </div>

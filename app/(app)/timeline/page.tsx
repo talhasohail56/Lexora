@@ -64,7 +64,7 @@ export default function TimelinePage() {
     <PageTransition>
       <div className="max-w-5xl space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
             <Clock className="h-7 w-7 text-lex-500" /> Legal Timeline
           </h1>
           <p className="text-muted-foreground">
@@ -74,7 +74,7 @@ export default function TimelinePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
             { label: "Past due",  v: pastDue, color: "from-red-500 to-orange-500" },
             { label: "Upcoming (≤30d)", v: upcoming, color: "from-amber-500 to-orange-500" },
@@ -89,7 +89,7 @@ export default function TimelinePage() {
         </div>
 
         <GlowCard className="p-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Select value={documentId} onValueChange={selectDocument}>
               <SelectTrigger className="flex-1"><SelectValue placeholder="Select a document to extract from…" /></SelectTrigger>
               <SelectContent>
@@ -97,18 +97,18 @@ export default function TimelinePage() {
               </SelectContent>
             </Select>
             {documentId && (
-              <Button variant="outline" onClick={showAllEvents}>
+              <Button variant="outline" onClick={showAllEvents} className="w-full sm:w-auto">
                 Show all
               </Button>
             )}
-            <Button variant="gradient" onClick={extract} disabled={!documentId || loading}>
+            <Button variant="gradient" onClick={extract} disabled={!documentId || loading} className="w-full sm:w-auto">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Extract timeline"}
             </Button>
           </div>
         </GlowCard>
 
-        <GlowCard className="p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
+        <GlowCard className="p-4 sm:p-6">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="font-semibold">Events</h3>
               <p className="text-xs text-muted-foreground">

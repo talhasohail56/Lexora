@@ -103,7 +103,7 @@ export default function TeamPage() {
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[2rem] border bg-[#0d0c09] p-7 text-white shadow-2xl md:p-9"
+          className="relative overflow-hidden rounded-[1.5rem] border bg-[#0d0c09] p-5 text-white shadow-2xl sm:rounded-[2rem] md:p-9"
         >
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.07)_1px,transparent_1px)] bg-[size:48px_48px] opacity-35" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(140,240,218,0.22),transparent_31%),radial-gradient(circle_at_82%_12%,rgba(214,122,45,0.28),transparent_35%)]" />
@@ -113,7 +113,7 @@ export default function TeamPage() {
                 <Users className="h-4 w-4" />
                 Firm workspace
               </div>
-              <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">
+              <h1 className="max-w-3xl text-3xl font-semibold leading-tight sm:text-4xl md:text-6xl">
                 {firm ? firm.name : "Create your firm account."}
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-white/55">
@@ -122,7 +122,7 @@ export default function TeamPage() {
                   : "Invite colleagues by email, keep firm access separate from personal accounts, and share only the documents each member should see."}
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:min-w-[320px]">
+            <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:min-w-[320px]">
               <Stat label="Members" value={activeMembers} />
               <Stat label="Pending invites" value={invitations.length} />
             </div>
@@ -177,7 +177,7 @@ export default function TeamPage() {
           <div className="grid gap-6 lg:grid-cols-[1fr_0.72fr]">
             <section className="space-y-6">
               <GlowCard className="p-6">
-                <div className="mb-5 flex items-center justify-between gap-3">
+                <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-xl font-semibold">Members</h2>
                     <p className="text-sm text-muted-foreground">People who can access firm-shared documents.</p>
@@ -186,7 +186,7 @@ export default function TeamPage() {
                 </div>
                 <div className="space-y-3">
                   {members.map((member: any) => (
-                    <div key={member.id} className="flex items-center gap-3 rounded-xl border bg-background/60 p-4">
+                    <div key={member.id} className="flex flex-col gap-3 rounded-xl border bg-background/60 p-4 sm:flex-row sm:items-center">
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-lex-500 to-amber-500 text-sm font-semibold text-white">
                         {member.user.avatarUrl ? (
                           <img src={member.user.avatarUrl} alt={`${member.user.name} profile`} className="h-full w-full object-cover" />
@@ -202,7 +202,7 @@ export default function TeamPage() {
                         </div>
                         <div className="truncate text-xs text-muted-foreground">{member.user.email}</div>
                       </div>
-                      <div className="text-right text-xs text-muted-foreground">
+                      <div className="text-left text-xs text-muted-foreground sm:text-right">
                         Joined<br />{formatRelative(member.joinedAt)}
                       </div>
                     </div>
@@ -215,7 +215,7 @@ export default function TeamPage() {
                 {invitations.length ? (
                   <div className="space-y-3">
                     {invitations.map((item: any) => (
-                      <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border bg-background/60 p-4">
+                      <div key={item.id} className="flex flex-col gap-3 rounded-xl border bg-background/60 p-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <div className="font-medium">{item.email}</div>
                           <div className="text-xs text-muted-foreground">

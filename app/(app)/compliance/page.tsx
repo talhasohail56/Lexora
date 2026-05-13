@@ -61,7 +61,7 @@ export default function CompliancePage() {
   return (
     <PageTransition>
       <div className="space-y-6">
-        <div className="flex items-end justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <Shield className="h-7 w-7 text-lex-500" /> Compliance
@@ -70,10 +70,10 @@ export default function CompliancePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-4">
-          <GlowCard className="col-span-12 lg:col-span-8 p-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <GlowCard className="p-4 sm:p-6 lg:col-span-8">
             <h3 className="font-semibold mb-3">Run check</h3>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Select value={documentId} onValueChange={setDocumentId}>
                 <SelectTrigger className="flex-1"><SelectValue placeholder="Select a document" /></SelectTrigger>
                 <SelectContent>
@@ -93,7 +93,7 @@ export default function CompliancePage() {
             )}
           </GlowCard>
 
-          <GlowCard className="col-span-12 lg:col-span-4 p-6">
+          <GlowCard className="p-4 sm:p-6 lg:col-span-4">
             <h3 className="font-semibold mb-1">Rule coverage</h3>
             <p className="text-xs text-muted-foreground mb-3">{rules.length} active rules across {radarData.length} categories</p>
             <div className="h-64">
@@ -123,7 +123,7 @@ function ResultSummary({ result }: { result: any }) {
   if (!result) return null;
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border bg-gradient-to-br from-lex-500/10 to-amber-500/10 p-4 mb-4">
-      <div className="flex items-center justify-between mb-2">
+      <div className="mb-2 flex flex-col gap-1 min-[430px]:flex-row min-[430px]:items-center min-[430px]:justify-between">
         <div className="font-medium">Compliance score</div>
         <div className="text-2xl font-bold text-gradient">{result.score}%</div>
       </div>

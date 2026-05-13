@@ -30,7 +30,7 @@ export default function AdminTemplatesPage() {
   return (
     <PageTransition>
       <div className="space-y-6 max-w-6xl">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <ScrollText className="h-7 w-7 text-lex-500" /> Legal templates
@@ -38,7 +38,7 @@ export default function AdminTemplatesPage() {
             <p className="text-muted-foreground">{templates.length} template prompts</p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button variant="gradient"><Plus className="h-4 w-4" /> New template</Button></DialogTrigger>
+            <DialogTrigger asChild><Button variant="gradient" className="w-full sm:w-auto"><Plus className="h-4 w-4" /> New template</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Add template</DialogTitle></DialogHeader>
               <div className="space-y-3">

@@ -36,22 +36,22 @@ export default function NegotiatorPage() {
     <PageTransition>
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
             <Sparkles className="h-7 w-7 text-amber-500" /> Negotiation Simulator
           </h1>
           <p className="text-muted-foreground">AI plays opposing counsel and proposes counter-language with rationale.</p>
         </div>
 
-        <GlowCard className="p-6">
+        <GlowCard className="p-4 sm:p-6">
           <div className="space-y-4">
             <div>
               <div className="text-sm font-medium mb-2">Choose stance</div>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {(["buyer", "seller", "lawyer"] as const).map((s) => (
                   <button
                     key={s}
                     onClick={() => setStance(s)}
-                    className={`px-3 py-1.5 rounded-md text-sm capitalize transition-colors ${
+                    className={`rounded-md px-3 py-2 text-sm capitalize transition-colors ${
                       stance === s
                         ? "bg-gradient-to-r from-lex-500 to-amber-500 text-white"
                         : "border border-border bg-card/40 hover:bg-accent"
@@ -71,7 +71,7 @@ export default function NegotiatorPage() {
                 placeholder="E.g. 'The Service Provider shall indemnify the Client against all claims arising from this Agreement…'"
               />
             </div>
-            <Button onClick={negotiate} disabled={loading || !clause.trim()} variant="gradient">
+            <Button onClick={negotiate} disabled={loading || !clause.trim()} variant="gradient" className="w-full sm:w-auto">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4" /> Negotiate</>}
             </Button>
           </div>
@@ -79,7 +79,7 @@ export default function NegotiatorPage() {
 
         {response && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <GlowCard className="p-6">
+            <GlowCard className="p-4 sm:p-6">
               <Badge variant="gradient" className="mb-3">Opposing counsel response</Badge>
               <p className="text-sm leading-relaxed whitespace-pre-wrap">{response}</p>
             </GlowCard>

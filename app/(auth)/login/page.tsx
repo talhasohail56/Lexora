@@ -113,10 +113,10 @@ export default function LoginPage() {
       </section>
 
       <section className="mx-auto w-full max-w-md">
-        <div className="rounded-2xl border border-white/[0.10] bg-white/[0.055] p-6 shadow-[0_30px_110px_rgba(0,0,0,0.34)] backdrop-blur-xl md:p-8">
+        <div className="rounded-2xl border border-white/[0.10] bg-white/[0.055] p-4 shadow-[0_30px_110px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:p-6 md:p-8">
           <div className="mb-7">
             <p className="mb-3 text-xs tracking-[0.14em] text-teal-200/[0.72]">LEXORA ACCESS</p>
-            <h2 className="text-4xl font-semibold leading-none">Welcome back</h2>
+            <h2 className="text-3xl font-semibold leading-none sm:text-4xl">Welcome back</h2>
             <p className="mt-3 text-sm leading-6 text-white/[0.48]">Continue into your AI paralegal workspace.</p>
           </div>
 

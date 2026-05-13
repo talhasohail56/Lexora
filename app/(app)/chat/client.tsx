@@ -132,10 +132,10 @@ export function ChatClient({
 
   return (
     <PageTransition>
-      <div className="grid h-[calc(100dvh-9rem)] min-h-[520px] min-w-0 grid-cols-12 gap-4 overflow-hidden">
+      <div className="grid min-w-0 gap-4 lg:h-[calc(100dvh-9rem)] lg:min-h-[520px] lg:grid-cols-12 lg:overflow-hidden">
         {/* Sessions */}
-        <GlowCard className="col-span-12 min-h-0 overflow-hidden p-3 md:col-span-3">
-          <div className="flex h-full min-h-0 flex-col">
+        <GlowCard className="min-h-0 overflow-hidden p-3 lg:col-span-3">
+          <div className="flex max-h-56 min-h-0 flex-col lg:h-full lg:max-h-none">
             <Button variant="gradient" onClick={newChat} className="mb-3 shrink-0"><Plus className="h-4 w-4" /> New chat</Button>
             <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-2 mb-1">
               Sessions
@@ -159,17 +159,18 @@ export function ChatClient({
         </GlowCard>
 
         {/* Chat pane */}
-        <GlowCard className="col-span-12 h-full min-h-0 overflow-hidden p-0 md:col-span-9">
+        <GlowCard className="min-h-[calc(100svh-18rem)] overflow-hidden p-0 lg:col-span-9 lg:h-full lg:min-h-0">
           <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)_auto]">
-          <div className="flex min-h-0 items-center gap-3 border-b border-border px-4 py-3">
+          <div className="flex min-h-0 flex-col gap-3 border-b border-border px-3 py-3 sm:flex-row sm:items-center sm:px-4">
             <Sparkles className="h-4 w-4 text-lex-500" />
             <span className="font-semibold text-sm">RAG Chat</span>
-            <div className="ml-auto flex items-center gap-2 text-xs">
+            <div className="flex w-full flex-col gap-2 text-xs sm:ml-auto sm:w-auto sm:flex-row sm:items-center">
               <Dialog open={draftDialogOpen} onOpenChange={setDraftDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"
+                    className="w-full sm:w-auto"
                     disabled={!sessionId || messages.filter((m) => m.role === "USER").length === 0}
                     title={!sessionId ? "Chat first, then create a draft" : undefined}
                   >
@@ -231,9 +232,9 @@ export function ChatClient({
                   </form>
                 </DialogContent>
               </Dialog>
-              <span className="text-muted-foreground">Scope:</span>
+              <span className="hidden text-muted-foreground sm:inline">Scope:</span>
               <Select value={scope} onValueChange={setScope}>
-                <SelectTrigger className="w-56 h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 w-full text-xs sm:h-8 sm:w-56"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">My documents + Pakistan law</SelectItem>
                   <SelectItem value="legal-corpus">Pakistan law only</SelectItem>
@@ -243,7 +244,7 @@ export function ChatClient({
             </div>
           </div>
 
-          <div className="min-h-0 space-y-4 overflow-y-scroll overscroll-contain px-6 py-4 pr-3 [scrollbar-gutter:stable]">
+          <div className="min-h-0 space-y-4 overflow-y-scroll overscroll-contain px-3 py-4 pr-2 [scrollbar-gutter:stable] sm:px-6 sm:pr-3">
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center px-4">
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-lex-500 to-amber-500 flex items-center justify-center text-white mb-4 shadow-glow">
@@ -285,7 +286,7 @@ export function ChatClient({
                       <Sparkles className="h-4 w-4" />
                     </div>
                   )}
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+                  <div className={`max-w-[92%] rounded-2xl px-3 py-2.5 sm:max-w-[80%] sm:px-4 ${
                     m.role === "USER"
                       ? "bg-gradient-to-br from-lex-500 to-amber-500 text-white"
                       : "bg-card border border-border"
@@ -324,7 +325,7 @@ export function ChatClient({
             <div ref={endRef} />
           </div>
 
-          <form onSubmit={send} className="shrink-0 border-t border-border p-3">
+          <form onSubmit={send} className="shrink-0 border-t border-border p-2 sm:p-3">
             <div className="relative">
               <Textarea
                 placeholder="Ask anything…"

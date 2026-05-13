@@ -45,7 +45,7 @@ export default function VoiceBriefPage() {
     <PageTransition>
       <div className="max-w-3xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
             <Mic className="h-7 w-7 text-lex-500" /> Voice Brief
           </h1>
           <p className="text-muted-foreground">Hands-free document summaries — perfect for your commute.</p>
@@ -62,12 +62,12 @@ export default function VoiceBriefPage() {
 
         {doc && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <GlowCard className="p-8 text-center">
+            <GlowCard className="p-4 text-center sm:p-8">
               <div className="flex justify-center mb-6">
                 <motion.button
                   whileTap={{ scale: 0.96 }}
                   onClick={toggle}
-                  className="relative h-32 w-32 rounded-full bg-gradient-to-br from-lex-500 via-amber-500 to-lex-600 text-white flex items-center justify-center shadow-glow"
+                  className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-lex-500 via-amber-500 to-lex-600 text-white shadow-glow sm:h-32 sm:w-32"
                 >
                   {playing && (
                     <motion.div
@@ -76,10 +76,10 @@ export default function VoiceBriefPage() {
                       transition={{ duration: 1.5, repeat: Infinity }}
                     />
                   )}
-                  {playing ? <Pause className="h-12 w-12" /> : <Play className="h-12 w-12 ml-2" />}
+                  {playing ? <Pause className="h-9 w-9 sm:h-12 sm:w-12" /> : <Play className="ml-2 h-9 w-9 sm:h-12 sm:w-12" />}
                 </motion.button>
               </div>
-              <Badge variant="info" className="mb-2"><FileText className="h-3 w-3 mr-1" />{doc.originalName}</Badge>
+              <Badge variant="info" className="mb-2 max-w-full whitespace-normal text-left"><FileText className="mr-1 h-3 w-3 shrink-0" />{doc.originalName}</Badge>
               <div className="mt-2 mb-4">
                 <span className="text-xs text-muted-foreground">Playback rate</span>
                 <input type="range" min="0.5" max="2" step="0.1" value={rate} onChange={(e) => setRate(parseFloat(e.target.value))} className="w-full max-w-xs mx-auto block accent-lex-500" />

@@ -136,7 +136,7 @@ export function BillingClient({
             Your plan controls feature access, monthly usage and role-specific tools across the whole site.
           </p>
         </div>
-        <div className="rounded-lg border bg-card p-4 text-right">
+        <div className="rounded-lg border bg-card p-4 text-left md:text-right">
           <p className="text-xs text-muted-foreground">Current plan</p>
           <p className="mt-1 text-xl font-semibold">{displayedPlan.name}</p>
           <p className="text-sm text-muted-foreground">{subscription.status}</p>
@@ -147,7 +147,7 @@ export function BillingClient({
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg border bg-card p-6 shadow-soft"
+          className="rounded-lg border bg-card p-4 shadow-soft sm:p-6"
         >
           <div className="mb-5 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -180,7 +180,7 @@ export function BillingClient({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08 }}
-          className="rounded-lg border bg-card p-6 shadow-soft"
+          className="rounded-lg border bg-card p-4 shadow-soft sm:p-6"
         >
           <div className="mb-5 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
@@ -201,7 +201,7 @@ export function BillingClient({
               const pct = unlimited ? 0 : Math.min(100, Math.round((used / max) * 100));
               return (
                 <div key={feature}>
-                  <div className="mb-1.5 flex items-center justify-between text-sm">
+                  <div className="mb-1.5 flex flex-col gap-1 text-sm min-[430px]:flex-row min-[430px]:items-center min-[430px]:justify-between">
                     <span>{FEATURE_LABELS[feature]}</span>
                     <span className="text-muted-foreground">
                       {unlimited ? `${used} / unlimited` : `${used} / ${limit}`}
@@ -223,7 +223,7 @@ export function BillingClient({
               key={plan.code}
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`flex min-h-[420px] flex-col rounded-lg border bg-card p-5 shadow-soft ${active ? "border-primary/50 ring-2 ring-primary/10" : ""}`}
+              className={`flex min-h-[420px] flex-col rounded-lg border bg-card p-4 shadow-soft sm:p-5 ${active ? "border-primary/50 ring-2 ring-primary/10" : ""}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -274,7 +274,7 @@ export function BillingClient({
 
           <form onSubmit={submitPayment} className="space-y-4">
             <div className="rounded-lg border bg-muted/30 p-4">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-medium">{selectedPlan?.name}</p>
                   <p className="text-xs text-muted-foreground">Monthly subscription</p>
@@ -308,7 +308,7 @@ export function BillingClient({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="expiry">Expiry</Label>
                 <Input
@@ -332,11 +332,11 @@ export function BillingClient({
               </div>
             </div>
 
-            <DialogFooter className="gap-2 sm:space-x-0">
-              <Button type="button" variant="outline" onClick={useDemoCard}>
+            <DialogFooter className="flex-col gap-2 sm:flex-row sm:space-x-0">
+              <Button type="button" variant="outline" onClick={useDemoCard} className="w-full sm:w-auto">
                 Use demo card
               </Button>
-              <Button type="submit" disabled={loadingPlan === selectedPlan?.code}>
+              <Button type="submit" disabled={loadingPlan === selectedPlan?.code} className="w-full sm:w-auto">
                 {loadingPlan === selectedPlan?.code ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

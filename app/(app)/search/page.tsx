@@ -43,7 +43,7 @@ export default function SearchPage() {
     <PageTransition>
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
             <Sparkles className="h-7 w-7 text-lex-500" /> Semantic search
           </h1>
           <p className="text-muted-foreground">
@@ -63,16 +63,16 @@ export default function SearchPage() {
                 autoFocus
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Select value={scope} onValueChange={setScope}>
-                <SelectTrigger className="w-64"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-64"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">My documents + Pakistan law</SelectItem>
                   <SelectItem value="legal-corpus">Pakistan legal library only</SelectItem>
                   {docs.map((d) => <SelectItem key={d.id} value={d.id}>{d.originalName}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button type="submit" variant="gradient" disabled={loading || !q.trim()}>
+              <Button type="submit" variant="gradient" disabled={loading || !q.trim()} className="w-full sm:w-auto">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
               </Button>
             </div>

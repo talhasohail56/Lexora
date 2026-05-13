@@ -37,20 +37,21 @@ export function Topbar({
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 h-16 border-b border-border/80 bg-background/[0.82] backdrop-blur-xl flex items-center px-6 gap-4">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border/80 bg-background/[0.82] px-3 backdrop-blur-xl sm:gap-3 sm:px-4 lg:h-16 lg:gap-4 lg:px-6">
       <button
         onClick={() => setOpen(true)}
-        className="group flex items-center gap-2 px-3 h-9 rounded-md border border-border bg-card/70 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors w-full max-w-md shadow-sm"
+        className="group flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-card/70 px-3 text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground sm:max-w-md"
+        aria-label="Open command search"
       >
-        <Search className="h-4 w-4" />
-        <span className="text-sm">Search anything...</span>
+        <Search className="h-4 w-4 shrink-0" />
+        <span className="truncate text-sm">Search<span className="hidden min-[390px]:inline"> anything...</span></span>
         <kbd className="ml-auto hidden md:flex items-center gap-0.5 text-[10px] font-medium border border-border rounded px-1.5 py-0.5 bg-muted">
           <Command className="h-3 w-3" />K
         </kbd>
       </button>
       <div className="flex-1" />
       {subscription && (
-        <Button asChild variant="outline" size="sm" className="hidden md:inline-flex">
+        <Button asChild variant="outline" size="sm" className="hidden xl:inline-flex">
           <Link href="/billing">
             <CreditCard className="h-4 w-4" />
             {subscription.plan.name}
@@ -61,11 +62,12 @@ export function Topbar({
         variant="ghost"
         size="icon"
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        className="shrink-0"
       >
         <Sun className="h-4 w-4 dark:hidden" />
         <Moon className="h-4 w-4 hidden dark:block" />
       </Button>
-      <Button variant="ghost" size="icon" asChild className="relative">
+      <Button variant="ghost" size="icon" asChild className="relative shrink-0">
         <Link href="/notifications">
           <Bell className="h-4 w-4" />
           {unread > 0 && (
@@ -81,8 +83,8 @@ export function Topbar({
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            <Avatar>
+          <button className="shrink-0 rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <Avatar className="h-9 w-9 sm:h-10 sm:w-10">
               {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={`${user.name} profile picture`} className="object-cover" /> : null}
               <AvatarFallback>{user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>

@@ -62,13 +62,13 @@ export default function ComparePage() {
     <PageTransition>
       <div className="space-y-6 max-w-6xl">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
             <GitCompare className="h-7 w-7 text-lex-500" /> Smart Compare
           </h1>
           <p className="text-muted-foreground">Compare contract versions, find what changed, and see why each difference matters before signing.</p>
         </div>
 
-        <GlowCard className="p-6">
+        <GlowCard className="p-4 sm:p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {picks.map((p, i) => (
               <div key={i} className="space-y-1">
@@ -90,21 +90,24 @@ export default function ComparePage() {
               </div>
             ))}
           </div>
-          <div className="mt-4 flex justify-between items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPicks((p) => p.length < 3 ? [...p, ""] : p)}
-              disabled={picks.length >= 3}
-            >
-              <Plus className="h-3.5 w-3.5" /> Add third (3-way compare)
-            </Button>
-            {picks.length > 2 && (
-              <Button variant="ghost" size="sm" onClick={() => setPicks((p) => p.slice(0, 2))}>
-                <X className="h-3.5 w-3.5" /> Remove
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPicks((p) => p.length < 3 ? [...p, ""] : p)}
+                disabled={picks.length >= 3}
+                className="w-full sm:w-auto"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add third
               </Button>
-            )}
-            <Button variant="gradient" onClick={run} disabled={loading}>
+              {picks.length > 2 && (
+                <Button variant="ghost" size="sm" onClick={() => setPicks((p) => p.slice(0, 2))} className="w-full sm:w-auto">
+                  <X className="h-3.5 w-3.5" /> Remove
+                </Button>
+              )}
+            </div>
+            <Button variant="gradient" onClick={run} disabled={loading} className="w-full sm:w-auto">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Compare"}
             </Button>
           </div>
@@ -144,7 +147,7 @@ function CompareResultView({
   const keyDifferences = Array.isArray(result.keyDifferences) ? result.keyDifferences : [];
 
   return (
-    <GlowCard className="p-5">
+    <GlowCard className="p-4 sm:p-5">
       {title && <h3 className="font-semibold mb-3">{title}</h3>}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
         <Stat label="Added" value={added.length} color="from-emerald-500 to-teal-500" />
@@ -154,7 +157,7 @@ function CompareResultView({
       </div>
 
       {result.summary && (
-        <div className="mb-4 rounded-lg border border-border bg-card/40 p-4">
+        <div className="mb-4 rounded-lg border border-border bg-card/40 p-3 sm:p-4">
           <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
             <ShieldCheck className="h-4 w-4 text-lex-500" /> Review summary
           </div>
@@ -222,7 +225,7 @@ function DifferenceCard({ diff }: { diff: any }) {
         : "border-amber-500/20 bg-amber-500/5 text-amber-500";
 
   return (
-    <div className={`rounded-lg border p-4 ${tone}`}>
+    <div className={`rounded-lg border p-3 sm:p-4 ${tone}`}>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
           <Icon className="h-4 w-4" /> {diff.area || "Contract term"}
@@ -301,9 +304,9 @@ function Item({ kind, type, text }: { kind: "add" | "remove"; type: string; text
   const sym = kind === "add" ? "+" : "-";
   const sCol = kind === "add" ? "text-emerald-500" : "text-red-500";
   return (
-    <div className={`p-2.5 rounded-md border ${bg} mb-2`}>
+    <div className={`mb-2 rounded-md border p-2.5 ${bg}`}>
       <Badge variant="outline" className="mb-1.5">{type}</Badge>
-      <p className="text-sm"><span className={`font-bold ${sCol} mr-1`}>{sym}</span>{text}</p>
+      <p className="break-words text-sm"><span className={`font-bold ${sCol} mr-1`}>{sym}</span>{text}</p>
     </div>
   );
 }

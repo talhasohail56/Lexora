@@ -197,10 +197,10 @@ export default function RegisterPage() {
       </section>
 
       <section className="mx-auto w-full max-w-xl">
-        <div className="rounded-2xl border border-white/[0.10] bg-white/[0.055] p-5 shadow-[0_30px_110px_rgba(0,0,0,0.34)] backdrop-blur-xl md:p-7">
+        <div className="rounded-2xl border border-white/[0.10] bg-white/[0.055] p-4 shadow-[0_30px_110px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:p-5 md:p-7">
           <div className="mb-6">
             <p className="mb-3 text-xs tracking-[0.14em] text-teal-200/[0.72]">LEXORA ONBOARDING</p>
-            <h2 className="text-3xl font-semibold leading-tight md:text-4xl">Create your workspace</h2>
+            <h2 className="text-3xl font-semibold leading-tight sm:text-4xl">Create your workspace</h2>
             <p className="mt-3 text-sm leading-6 text-white/[0.50]">
               Pick the role and plan first, then we will tune the dashboard after sign in.
             </p>
@@ -242,7 +242,7 @@ export default function RegisterPage() {
           </div>
           <div className="space-y-2">
             <Label className={labelClass}>Workspace type</Label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {(["USER", "LAWYER"] as const).map((r) => {
                 const Icon = r === "USER" ? Scale : Briefcase;
                 return (
@@ -250,7 +250,7 @@ export default function RegisterPage() {
                     type="button"
                     key={r}
                     onClick={() => changeRole(r)}
-                    className={`flex items-center gap-2 p-3 rounded-lg border text-sm transition-colors ${
+                    className={`flex items-center gap-2 rounded-lg border p-3 text-sm transition-colors ${
                       form.role === r
                         ? "border-teal-200/45 bg-teal-200/[0.10] text-white shadow-[0_0_38px_rgba(94,234,212,0.10)]"
                         : "border-white/[0.10] bg-black/[0.22] text-white/[0.54] hover:border-white/[0.22] hover:text-white"
@@ -282,7 +282,7 @@ export default function RegisterPage() {
                       : "border-white/[0.10] bg-black/[0.22] text-white/[0.62] hover:border-white/[0.22] hover:text-white"
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                     <div className="font-medium">{plan.name}</div>
                     <div className={form.planCode === plan.code ? "text-sm text-orange-100" : "text-sm text-white/[0.42]"}>{plan.price}</div>
                   </div>

@@ -38,7 +38,7 @@ export default function GlossaryPage() {
     <PageTransition>
       <div className="max-w-5xl space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
             <BookOpen className="h-7 w-7 text-lex-500" /> Legal glossary
           </h1>
           <p className="text-muted-foreground">{TERMS.length} terms · click any to expand</p>

@@ -29,20 +29,20 @@ export default function NotificationsPage() {
   return (
     <PageTransition>
       <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <Bell className="h-7 w-7 text-lex-500" /> Notifications
             </h1>
             <p className="text-muted-foreground">All your in-app alerts and updates.</p>
           </div>
-          <Button onClick={markAll} variant="outline" size="sm"><Check className="h-3.5 w-3.5" /> Mark all read</Button>
+          <Button onClick={markAll} variant="outline" size="sm" className="w-full sm:w-auto"><Check className="h-3.5 w-3.5" /> Mark all read</Button>
         </div>
 
         <div className="space-y-2">
           <AnimatePresence>
             {items.length === 0 && (
-              <GlowCard className="p-10 text-center">
+              <GlowCard className="p-8 text-center sm:p-10">
                 <div className="mx-auto h-12 w-12 rounded-2xl bg-gradient-to-br from-lex-500/20 to-amber-500/20 flex items-center justify-center mb-3">
                   <BellOff className="h-5 w-5 text-lex-500" />
                 </div>
@@ -58,7 +58,7 @@ export default function NotificationsPage() {
                 exit={{ opacity: 0, x: 50 }}
               >
                 <GlowCard className={`p-4 ${n.isRead ? "opacity-60" : ""}`}>
-                  <div className="flex items-start gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                     <div className="h-9 w-9 shrink-0 rounded-lg bg-gradient-to-br from-lex-500 to-amber-500 flex items-center justify-center text-white">
                       <Sparkles className="h-4 w-4" />
                     </div>
@@ -72,7 +72,7 @@ export default function NotificationsPage() {
                       <div className="text-[10px] text-muted-foreground mt-1">{formatRelative(n.createdAt)} · {n.type}</div>
                     </div>
                     {!n.isRead && (
-                      <Button variant="ghost" size="sm" onClick={() => markOne(n.id)}>Mark read</Button>
+                      <Button variant="ghost" size="sm" onClick={() => markOne(n.id)} className="w-full sm:w-auto">Mark read</Button>
                     )}
                   </div>
                 </GlowCard>

@@ -123,11 +123,11 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
   const formAvatarIsUpload = form.avatarUrl.startsWith("data:image/");
 
   return (
-    <div className="fixed inset-0 z-[80] overflow-y-auto bg-black/80 p-4 backdrop-blur-xl">
+    <div className="fixed inset-0 z-[80] overflow-y-auto overflow-x-hidden bg-black/80 p-3 backdrop-blur-xl sm:p-4">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.07)_1px,transparent_1px)] bg-[size:46px_46px]" />
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_28%_26%,rgba(140,240,218,0.18),transparent_28%),radial-gradient(circle_at_78%_18%,rgba(214,122,45,0.22),transparent_34%),radial-gradient(circle_at_50%_88%,rgba(245,162,80,0.16),transparent_30%)]" />
 
-      <div className="relative mx-auto flex min-h-full w-full max-w-6xl items-center py-10">
+      <div className="relative mx-auto flex min-h-full w-full max-w-6xl items-center py-6 sm:py-10">
         <div className="grid w-full gap-6 lg:grid-cols-[0.85fr_1.15fr]">
           <motion.div
             initial={{ opacity: 0, x: -24 }}
@@ -174,19 +174,19 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-            className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-[#14110d]/88 p-6 text-white shadow-2xl md:p-8"
+            className="relative overflow-hidden rounded-[1.5rem] border border-white/12 bg-[#14110d]/88 p-4 text-white shadow-2xl sm:rounded-[2rem] sm:p-6 md:p-8"
           >
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#8ff3d6]/70 to-transparent" />
-            <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-medium uppercase tracking-[0.12em] text-[#8ff3d6]">
                   <Icon className="h-4 w-4" />
                   {copy.label}
                 </div>
-                <h1 className="mt-5 max-w-xl text-4xl font-bold tracking-tight md:text-5xl">{copy.title}</h1>
+                <h1 className="mt-5 max-w-xl text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">{copy.title}</h1>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50">{copy.body}</p>
               </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/60">
+              <div className="flex max-w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/60 sm:max-w-xs">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.06] text-sm font-semibold text-white">
                   {form.avatarUrl ? (
                     <img src={form.avatarUrl} alt={`${profile.name} profile preview`} className="h-full w-full object-cover" />
@@ -194,14 +194,14 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
                     initials
                   )}
                 </div>
-                <div className="min-w-0 text-right">
+                <div className="min-w-0 text-left sm:text-right">
                   <div className="truncate font-semibold text-white">{profile.name}</div>
                   <div className="truncate">{profile.email}</div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid gap-4 md:mt-8 md:grid-cols-2">
               <Field label="Profile picture (optional)" className="md:col-span-2">
                 <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:flex-row sm:items-center">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] text-lg font-semibold text-white">
@@ -219,7 +219,7 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
                       className="border-white/10 bg-white/[0.04] text-white placeholder:text-white/25"
                       placeholder="Paste image URL, or upload one below"
                     />
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                       <label className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] px-3 text-sm font-medium text-white transition-colors hover:bg-white/[0.10]">
                         <Camera className="h-4 w-4" />
                         Upload image
@@ -231,7 +231,7 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
                         />
                       </label>
                       {form.avatarUrl ? (
-                        <Button type="button" variant="outline" size="sm" onClick={() => setForm({ ...form, avatarUrl: "" })}>
+                        <Button type="button" variant="outline" size="sm" onClick={() => setForm({ ...form, avatarUrl: "" })} className="w-full sm:w-auto">
                           Remove
                         </Button>
                       ) : null}
@@ -326,7 +326,7 @@ export function OnboardingSetup({ profile }: { profile: Profile }) {
             </div>
 
             <div className="mt-7 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-              <div className="flex items-start gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                 <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#8ff3d6]/12 text-[#8ff3d6]">
                   <Sparkles className="h-4 w-4" />
                 </div>

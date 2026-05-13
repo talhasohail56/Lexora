@@ -3,7 +3,7 @@ import { Scale } from "lucide-react";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#080806] text-white">
+    <div className="relative min-h-svh overflow-x-hidden bg-[#080806] text-white">
       <div className="absolute inset-0 bg-[linear-gradient(120deg,#130806_0%,#080806_40%,#151107_70%,#2c0b08_100%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(0deg,#080806_0%,transparent_38%,rgba(255,255,255,0.05)_100%)]" />
       <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),transparent)]" />
@@ -27,7 +27,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </Link>
       </header>
 
-      <main className="relative z-10 flex min-h-screen items-center justify-center px-5 py-24 md:px-10">
+      <main className="relative z-10 flex min-h-svh items-center justify-center px-4 py-24 sm:px-5 md:px-10">
         {children}
       </main>
     </div>

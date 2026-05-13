@@ -28,11 +28,11 @@ export default async function LibraryPage() {
               {sources.length} official sources indexed into {chunkCount} RAG chunks.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button asChild variant="outline" className="w-full sm:w-auto">
               <Link href="/search"><Search className="h-4 w-4" /> Search corpus</Link>
             </Button>
-            <Button asChild variant="gradient">
+            <Button asChild variant="gradient" className="w-full sm:w-auto">
               <Link href="/chat"><ShieldCheck className="h-4 w-4" /> Ask Lexora</Link>
             </Button>
           </div>
@@ -57,7 +57,7 @@ export default async function LibraryPage() {
           {sources.map((source) => {
             const tags = safeJson<string[]>(source.tags, []);
             return (
-              <GlowCard key={source.id} className="p-5">
+              <GlowCard key={source.id} className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <Badge variant="gradient" className="mb-2">{source.sourceType}</Badge>

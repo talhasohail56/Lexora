@@ -46,7 +46,7 @@ const comparisonFeatures: SubscriptionFeature[] = [
 
 export default function PricingPage() {
   return (
-    <main className="h-screen snap-y snap-mandatory overflow-y-auto scroll-smooth overscroll-y-contain bg-[#080806] text-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <main className="h-svh snap-y snap-mandatory overflow-y-auto scroll-smooth overscroll-y-contain bg-[#080806] text-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <PricingBrand />
       <PricingRail />
 
@@ -69,7 +69,7 @@ export default function PricingPage() {
             initial={{ opacity: 0, y: 26, filter: "blur(10px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-6xl text-6xl font-semibold leading-none md:text-8xl lg:text-9xl"
+            className="max-w-6xl text-5xl font-semibold leading-none sm:text-6xl md:text-8xl lg:text-9xl"
           >
             Pay for access.
             <br />
@@ -84,12 +84,12 @@ export default function PricingPage() {
             Plans control documents, RAG, drafting, compliance, lawyer annotations and admin power across the whole product.
           </motion.p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg" className="bg-white text-[#080806] hover:bg-white/90">
+            <Button asChild size="lg" className="w-full bg-white text-[#080806] hover:bg-white/90 min-[420px]:w-auto">
               <Link href="/register">
                 Start free <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+            <Button asChild size="lg" variant="outline" className="w-full border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white min-[420px]:w-auto">
               <Link href="#plans">View plans</Link>
             </Button>
           </div>
@@ -108,7 +108,7 @@ export default function PricingPage() {
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
               <p className="mb-5 text-xs text-[#140d08]/[0.58]">THE PLAN STACK</p>
-              <h2 className="max-w-3xl text-6xl font-semibold leading-none md:text-8xl">
+              <h2 className="max-w-3xl text-5xl font-semibold leading-none sm:text-6xl md:text-8xl">
                 Every card unlocks a different legal workspace.
               </h2>
               <p className="mt-6 max-w-md text-sm leading-6 text-[#140d08]/[0.64] md:text-base">
@@ -132,7 +132,7 @@ export default function PricingPage() {
             className="mx-auto max-w-5xl text-center"
           >
             <p className="mb-4 text-xs text-teal-200/[0.72]">HORIZONTAL PLAN RAIL</p>
-            <h2 className="text-5xl font-semibold leading-none md:text-8xl">Swipe through the access levels.</h2>
+            <h2 className="text-4xl font-semibold leading-none sm:text-5xl md:text-8xl">Swipe through the access levels.</h2>
           </motion.div>
           <PlanMarquee />
         </div>
@@ -150,7 +150,7 @@ export default function PricingPage() {
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: false, amount: 0.55 }}
                 transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
-                className="max-w-5xl text-5xl font-semibold leading-none sm:text-6xl md:text-8xl"
+                className="max-w-5xl text-4xl font-semibold leading-none sm:text-6xl md:text-8xl"
               >
                 Roles do not just label users. They unlock tools.
               </motion.h2>
@@ -177,19 +177,19 @@ export default function PricingPage() {
             whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             viewport={{ once: false, amount: 0.5 }}
             transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-6xl text-6xl font-semibold leading-none md:text-8xl lg:text-9xl"
+            className="max-w-6xl text-5xl font-semibold leading-none sm:text-6xl md:text-8xl lg:text-9xl"
           >
             Pick a plan.
             <br />
             The gates handle the rest.
           </motion.h2>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg" className="bg-white text-[#090c09] hover:bg-white/90">
+            <Button asChild size="lg" className="w-full bg-white text-[#090c09] hover:bg-white/90 min-[420px]:w-auto">
               <Link href="/register?plan=PRO">
                 Choose Professional <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-white/[0.24] bg-white/10 text-white hover:bg-white/15 hover:text-white">
+            <Button asChild size="lg" variant="outline" className="w-full border-white/[0.24] bg-white/10 text-white hover:bg-white/15 hover:text-white min-[420px]:w-auto">
               <Link href="/login">I already have access</Link>
             </Button>
           </div>
@@ -275,7 +275,7 @@ function PlanStack() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: false, amount: 0.45 }}
       transition={{ duration: 0.6 }}
-      className="relative min-h-[560px]"
+      className="relative min-h-[500px] sm:min-h-[560px]"
     >
       <div className="absolute inset-x-0 bottom-0 h-24 rounded-[50%] bg-black/20 blur-2xl" />
       <div className="absolute inset-0 rounded-lg border border-[#5c351e]/20 bg-[#a96736]/[0.18]" />
@@ -286,15 +286,15 @@ function PlanStack() {
           whileInView={{ opacity: 1, y: 0, rotate: -10 + index * 5, scale: 1 }}
           viewport={{ once: false, amount: 0.45 }}
           transition={{ duration: 0.62, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute w-72 rounded-lg border border-[#2b1308]/[0.14] bg-[#fff7df] p-5 text-[#140d08] shadow-2xl"
-          style={{ left: `${7 + index * 13}%`, top: `${7 + (index % 3) * 16}%`, zIndex: 10 + index }}
+          className="absolute w-60 rounded-lg border border-[#2b1308]/[0.14] bg-[#fff7df] p-4 text-[#140d08] shadow-2xl sm:w-72 sm:p-5"
+          style={{ left: `${2 + index * 13}%`, top: `${7 + (index % 3) * 16}%`, zIndex: 10 + index }}
         >
           <div className="mb-10 flex items-center justify-between text-xs text-[#29170d]/[0.52]">
             <span>{plan.audienceRole}</span>
             {plan.code === "FIRM" ? <Crown className="h-4 w-4" /> : <CreditCard className="h-4 w-4" />}
           </div>
-          <h3 className="text-2xl font-semibold">{plan.name}</h3>
-          <p className="mt-3 text-3xl font-semibold">{formatPlanPrice(plan.priceCents)}</p>
+          <h3 className="text-xl font-semibold sm:text-2xl">{plan.name}</h3>
+          <p className="mt-3 text-2xl font-semibold sm:text-3xl">{formatPlanPrice(plan.priceCents)}</p>
           <p className="mt-4 text-sm leading-6 text-[#140d08]/[0.58]">{plan.description}</p>
         </motion.div>
       ))}

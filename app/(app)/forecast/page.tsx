@@ -36,24 +36,24 @@ export default function ForecastPage() {
     <PageTransition>
       <div className="max-w-5xl space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
             <Activity className="h-7 w-7 text-lex-500" /> Court Forecast
           </h1>
           <p className="text-muted-foreground">
             Bayesian-style outcome forecasting based on clause patterns, severity, and historical priors.
-            <Badge variant="warning" className="ml-2">Experimental</Badge>
+            <Badge variant="warning" className="mt-2 sm:ml-2 sm:mt-0">Experimental</Badge>
           </p>
         </div>
 
         <GlowCard className="p-5">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Select value={documentId} onValueChange={setDocumentId}>
               <SelectTrigger className="flex-1"><SelectValue placeholder="Select a document" /></SelectTrigger>
               <SelectContent>
                 {docs.map((d) => <SelectItem key={d.id} value={d.id}>{d.originalName}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button onClick={forecast} disabled={!documentId || loading} variant="gradient">
+            <Button onClick={forecast} disabled={!documentId || loading} variant="gradient" className="w-full sm:w-auto">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Forecast"}
             </Button>
           </div>

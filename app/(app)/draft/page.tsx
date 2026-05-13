@@ -129,8 +129,8 @@ export default function DraftPage() {
 
   return (
     <PageTransition>
-      <div className="grid grid-cols-12 gap-4 max-w-7xl">
-        <GlowCard className="col-span-12 lg:col-span-3 p-4">
+      <div className="grid max-w-7xl grid-cols-1 gap-4 lg:grid-cols-12">
+        <GlowCard className="p-4 lg:col-span-3">
           <h3 className="font-semibold mb-3 flex items-center gap-2"><ScrollText className="h-4 w-4" /> Drafts</h3>
           <div className="space-y-1.5 max-h-[60vh] overflow-y-auto scrollbar-thin">
             {drafts.length === 0 && <p className="text-xs text-muted-foreground">No drafts yet</p>}
@@ -149,10 +149,10 @@ export default function DraftPage() {
           </div>
         </GlowCard>
 
-        <div className="col-span-12 lg:col-span-9 space-y-4">
+        <div className="space-y-4 lg:col-span-9">
           <GlowCard className="p-5">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList>
+              <TabsList className="mb-2 w-full justify-start overflow-x-auto no-scrollbar sm:w-auto">
                 <TabsTrigger value="config">Configure</TabsTrigger>
                 <TabsTrigger value="editor">Editor</TabsTrigger>
                 <TabsTrigger value="history">History ({versionHistory.length})</TabsTrigger>
@@ -161,7 +161,7 @@ export default function DraftPage() {
               <TabsContent value="config" className="space-y-4">
                 <div>
                   <Label>Template</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-1">
+                  <div className="mt-1 grid grid-cols-1 gap-2 min-[430px]:grid-cols-2 md:grid-cols-5">
                     {TEMPLATES.map((t) => (
                       <button
                         key={t.type}
@@ -183,7 +183,7 @@ export default function DraftPage() {
                   <Input value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div><Label>Party A</Label><Input value={parties.partyA} onChange={(e) => setParties({ ...parties, partyA: e.target.value })} /></div>
                   <div><Label>Party B</Label><Input value={parties.partyB} onChange={(e) => setParties({ ...parties, partyB: e.target.value })} /></div>
                   <div><Label>Effective date</Label><Input type="date" value={parties.effectiveDate} onChange={(e) => setParties({ ...parties, effectiveDate: e.target.value })} /></div>
@@ -196,7 +196,7 @@ export default function DraftPage() {
               </TabsContent>
 
               <TabsContent value="editor" className="space-y-3">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                   <Input value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1" />
                   <Button variant="outline" onClick={save} disabled={!currentDraftId}><Save className="h-4 w-4" /> Save</Button>
                   <Button variant="outline" onClick={downloadWord} disabled={!content}><Download className="h-4 w-4" /> Word</Button>
@@ -231,7 +231,7 @@ export default function DraftPage() {
                       transition={{ delay: i * 0.05 }}
                       className="p-3 rounded-lg border bg-card/40"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
                         <Badge variant="outline">v{v.version}</Badge>
                         <span className="text-xs text-muted-foreground">{new Date(v.savedAt).toLocaleString()}</span>
                       </div>

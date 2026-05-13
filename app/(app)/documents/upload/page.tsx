@@ -72,16 +72,16 @@ export default function UploadPage() {
     <PageTransition>
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Upload a document</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Upload a document</h1>
           <p className="text-muted-foreground">PDF or DOCX, up to 20 MB.</p>
         </div>
 
-        <GlowCard className="p-6">
+        <GlowCard className="p-4 sm:p-6">
           <div
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
-            className={`relative rounded-xl border-2 border-dashed transition-all p-10 text-center ${
+            className={`relative rounded-xl border-2 border-dashed p-6 text-center transition-all sm:p-10 ${
               dragOver ? "border-lex-500 bg-lex-500/5" : "border-border bg-card/30"
             }`}
           >
