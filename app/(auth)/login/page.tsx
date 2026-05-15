@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowRight, Database, FileSearch, Loader2, Lock, Mail, Scale } from "lucide-react";
+import { ArrowRight, Database, Loader2, Lock, Mail, Scale } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -172,14 +172,6 @@ export default function LoginPage() {
             New here?{" "}
             <Link href="/register" className="font-medium text-white underline-offset-4 hover:underline">Create an account</Link>
           </p>
-
-          <div className="mt-6 rounded-xl border border-white/[0.10] bg-black/[0.22] p-4 text-xs text-white/[0.46]">
-            <div className="mb-3 flex items-center gap-2 text-white/[0.72]">
-              <FileSearch className="h-4 w-4 text-teal-200" />
-              Demo access
-            </div>
-            <span className="font-medium text-white">admin@lexora.ai</span> · password123
-          </div>
         </div>
       </section>
     </motion.div>
